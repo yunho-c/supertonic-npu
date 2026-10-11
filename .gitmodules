@@ -1,0 +1,3 @@
+[submodule "external"]
+	path = external/supertonic
+	url = https://github.com/yunho-c/supertonic.git
