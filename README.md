@@ -124,7 +124,7 @@ Full measurements and paired WAVs are in `artifacts/optimization/final-8steps/`.
 
 ## Grouped flow experiments
 
-`scripts/export_flow.py` exports 2, 4 or 8 consecutive flow steps as one QNN graph. The initial measurements below use the original convolution layout, exact GELU and FP16; they target a fixed eight-step synthesis schedule. `plainN` only groups calls. `reuseN` also computes text/style attention keys, values and mask-dependent rotary terms once per group. `specialN` additionally precomputes the time encoder and each block's time projection in FP32. The latter can change device rounding and needs separate numerical qualification.
+`scripts/export_flow.py` exports 1, 2, 4 or 8 consecutive flow steps as one QNN graph. The initial measurements below use the original convolution layout, exact GELU and FP16; they target a fixed eight-step synthesis schedule. `plainN` only groups calls. `reuseN` also computes text/style attention keys, values and mask-dependent rotary terms once per group. `specialN` additionally precomputes the time encoder and each block's time projection in FP32. The latter can change device rounding and needs separate numerical qualification.
 
 ```powershell
 # Build one 96-frame bucket; share the existing text models and layout vocoder.
@@ -141,7 +141,7 @@ python scripts/qualify_optimizations.py --variant baseline=artifacts/flow/baseli
 python scripts/synthesize.py --models artifacts/flow/reuse8-buckets96 --steps 8 --repeat 3 --trace --output artifacts/flow/trace-reuse8
 ```
 
-The exporter checks repeated original unpadded ONNX outputs before conversion and requires exactly one QNN delegate with no CPU compute fallback. The same parameter objects are reused across steps. Metadata records the fixed schedule, reuse options, reference errors, operation counts, compile time and program size. `build_flow.py` accepts `plainN`, `reuseN` and `specialN` for N = 2, 4 or 8; use `--bucket 64 --bucket 96 --bucket 128` only after screening one shape. Each compiled group receives the starting step; the native runner advances by the group size, validates the schedule, and records the actual invocation count.
+The exporter checks repeated original unpadded ONNX outputs before conversion and requires exactly one QNN delegate with no CPU compute fallback. The same parameter objects are reused across steps. Metadata records the fixed schedule, reuse options, reference errors, operation counts, compile time and program size. `build_flow.py` accepts `plainN`, `reuseN` and `specialN` for N = 2, 4 or 8, plus `plain1` for layout comparisons; use `--bucket 64 --bucket 96 --bucket 128` only after screening one shape. Each compiled group receives the starting step; the native runner advances by the group size, validates the schedule, and records the actual invocation count.
 
 The compiled 96-frame variants have the following costs. MB is decimal; compilation time excludes model loading and reference checks. Every row compiled into one QNN delegate with no CPU compute fallback.
 
@@ -179,11 +179,63 @@ python scripts/synthesize.py --models artifacts/flow/reuse8-mixed --steps 8 --co
 
 That mixed bundle produced bit-identical audio to `artifacts/optimized` in all seven held-out cases. Its median RTFs were **0.0328–0.0453**, with 15 warm requests per case. Both bundles retained the known long-English final-latent failure (6.03% relative L2). Only the 96-frame cases use one flow call; 64 and 128 retain eight calls. This bundle is opt-in, not a replacement for the conservative preset.
 
-`host_trace.json` measures **host wall time**, including synchronous backend execution. It is not an HTP hardware-activity trace. Hardware Optrace requires a separate profiling capture and schematic; the existing detailed operator profiles cannot provide that timeline. Profiling remains disabled for ordinary latency measurements.
+`host_trace.json` measures **host wall time**, including synchronous backend execution. It is not an HTP hardware-activity trace. The separate HTP Optrace workflow below captures device activity with a matching compiler schematic. Profiling remains disabled for ordinary latency measurements.
 
 The saved `artifacts/flow/trace-baseline96/host_trace.json` and `artifacts/flow/trace-reuse8/host_trace.json` contain 24 and 3 flow-forward spans over three requests, respectively. Open either in [Perfetto](https://ui.perfetto.dev/). Separate detailed QNN profiles in `artifacts/flow/profiles/` still attribute 42.6% of summed node cycles to GELU and 26.4% to permutations in `reuse8`, versus 42.6% and 25.3% in the original 96-frame graph. These instrumented percentages are not production latency; they indicate that the dominant activation/layout work remains after fusion.
 
 The [grouped-flow evidence snapshot](benchmarks/flow-unroll-2026-10-15.json) retains compilation metadata, program hashes, individual warm timings, numerical failures and profile summaries. `python scripts/summarize_flow.py` regenerates it from the local reports without storing model binaries in Git. Adapted attention code retains its upstream [ExecuTorch license](licenses/executorch.txt).
+
+## Convolution-preserving layout experiments
+
+ExecuTorch exports exact GELU as one QNN `Gelu` operator. Its Conv1d lowering introduces `unsqueeze → Conv2d → squeeze`; the rank changes interrupt channels-last propagation. Grouping flow steps does not remove these boundaries inside each ConvNeXt block. Layer normalization and attention also have layout changes, so eliminating every permutation would not be a valid rewrite.
+
+Two narrower alternatives preserve the pointwise convolutions and weights:
+
+- `--conv-layout pointwise-2d` keeps the pair in rank four through GELU, squeezing only after the second convolution. This removes 56 logical transpose nodes per flow step at length 96 (308 → 252), but measured GELU node cycles doubled. Both screened utterances retained bit-identical latents and audio; synthesis was 8–11% slower. This candidate is not recommended.
+- `--conv-layout gelu-last` transposes only the activation input from BCL to BLC and transposes its output back. Both pointwise operators remain Conv1d; there is no Conv-to-Linear replacement, GELU approximation, or quantization. The original normalization, masks, padding, residuals and time calculation remain intact.
+
+`plain1` isolates layout from unrolling and still makes eight flow calls. The result is shape-dependent: applying `gelu-last` at length 64 regressed short-English synthesis from 114 ms to 318 ms, despite retaining bit-identical outputs. Use a mixed bundle to select the implementation per bucket. It references existing text models and layout vocoders without copying them:
+
+```powershell
+python scripts/build_flow.py --variant plain1 --conv-layout gelu-last --bucket 96 --bucket 128 --work artifacts/pointwise --reuse
+python scripts/make_bundle.py --bucket artifacts/optimization/fp16-l64 --bucket artifacts/pointwise/plain1-gelu-last-l96 --bucket artifacts/pointwise/plain1-gelu-last-l128 --vocoder artifacts/optimization/layout-l64 --vocoder artifacts/optimization/layout-l96 --vocoder artifacts/optimization/layout-l128 --output artifacts/pointwise/gelu-last-mixed
+python scripts/synthesize.py --models artifacts/pointwise/gelu-last-mixed --steps 8 --compare
+```
+
+The mixed bundle uses original flow at 64 frames and `gelu-last` at 96/128. It requires **eight steps** and remains separate from `artifacts/optimized`. The final matched run used seed 42, 15 warm requests per utterance, alternating variant order, and no compiler or profiler workload:
+
+| Case | Bucket | Baseline ms | Mixed ms | Mixed RTF |
+| --- | ---: | ---: | ---: | ---: |
+| English main | 96 | 187.68 | 153.88 | 0.02667 |
+| English short | 64 | 115.23 | 134.18 | 0.04327 |
+| Korean | 96 | 192.54 | 172.54 | 0.03190 |
+| Spanish | 64 | 120.71 | 113.59 | 0.03238 |
+| French | 64 | 113.02 | 113.35 | 0.03416 |
+| Portuguese | 64 | 113.36 | 113.14 | 0.02613 |
+| English long | 128 | 211.45 | 184.49 | 0.02425 |
+
+The changed 96/128-frame cases improved by **10–18%** in this run. The 64-frame rows use identical binaries; their variation is measurement noise, not an optimization effect. An earlier six-case screen at fixed length 96 found 12–21% reductions. At 128 frames, the initial improvement was only 1.6%, but two repeats with 31 warm requests and opposite variant orders both measured about 183 ms versus 206–208 ms (11–12% faster). Timing is warm native synthesis, excluding model loading, Python preprocessing and file I/O.
+
+All 14 full-bucket comparisons across seeds 42 and 43 produced bit-identical latents and audio to the existing FP16 baseline. The selected mixed bundle was also bit-identical in all seven paired cases. Both paths retain the known long-English seed-42 final-latent error (6.03% relative L2) and Spanish seed-43 errors (7.92% latent relative L2, 14.40% spectral convergence). These exceed the existing absolute ONNX gates; the layout change introduces no additional numerical error in these tests. This is numerical screening, not a listening or intelligibility study.
+
+Combining `gelu-last` with `reuse2` also preserved bit-identical output in the two-case screen. With 31 warm requests, it reduced 157.80 → 154.62 ms on English and 157.51 → 156.26 ms on Korean: only 0.8–2.0%, which does not establish a robust additional gain against the observed variation. It makes four flow calls instead of eight, takes 261 seconds to compile, and produces a 142.94 MB program, versus 108 seconds and 140.80 MB for single-step `gelu-last` at length 96. It remains an optional experiment.
+
+The detailed 96-frame profile retained all 28 GELUs and 86 convolutions. `gelu-last` increased logical transpose nodes from 308 to 364, while reducing their summed measured cycles from 55.23 million to 36.84 million. GELU cycles remained roughly unchanged (92.75 million versus 96.55 million). Operator count alone is therefore a poor cost estimate; tensor layout, tiling and the selected implementation matter. These instrumented cycle totals are not production latency.
+
+The [layout evidence snapshot](benchmarks/pointwise-layout-2026-10-16.json) retains successful and rejected candidates, all timing samples, numerical failures, profiles and program hashes, including the shared models. Regenerate it with `python scripts/summarize_flow.py --work artifacts/pointwise --output benchmarks/pointwise-layout-2026-10-16.json`.
+
+### HTP hardware timeline
+
+Compile a separate profiling program with `--optrace`, then collect it using `qnn-net-run` and the SDK's HTP Optrace reader:
+
+```powershell
+python scripts/export_flow.py --unroll 1 --conv-layout gelu-last --latent-length 96 --optrace --output artifacts/pointwise/optrace-gelu-last-l96
+python scripts/profile_qnn.py --models artifacts/pointwise/optrace-gelu-last-l96 --component vector_estimator --repeat 3 --optrace --output artifacts/pointwise/profiles/optrace-gelu-last
+```
+
+The exporter saves `forward_schematic.bin`. The profiler writes `chrometrace.json`, `chrometrace_runtrace.json`, an HTP graph JSON and an HTML analysis report under `vector_estimator/`. Open the trace in [Perfetto](https://ui.perfetto.dev/) to inspect HVX/HMX/DMA activity and kernel dependencies. The SDK trace uses backend cycles/ticks as coordinates; consult the `Duration (cycles)` and `summary_time_us` attributes for units. These captures use synthetic component inputs and instrumentation changes execution time; ordinary synthesis measurements use separately compiled programs with profiling disabled. Bundle creation rejects profiling programs.
+
+The saved `artifacts/pointwise/profiles/optrace-gelu-last/vector_estimator/chrometrace.json` confirms **separate GELU execution on HVX** in the faster 96-frame graph. Its 28 logical GELUs become 1,792 `q::Gelu.fp16.tcm` kernel tiles, each with shape `[1, 2, 96, 32]` and the `uses_hvx` flag. They are not absorbed into the convolutions. The rank-four `pointwise-2d` capture uses 896 GELU tiles shaped `[1, 1, 96, 128]`; fewer tiles did not make that candidate faster. The capture demonstrates backend tiling and execution, without exposing the kernel's internal arithmetic. Additional detailed profiles at lengths 64 and 128 are archived; per-node cycle totals alone do not explain the 64-frame synthesis regression.
 
 ## Conversion changes
 
@@ -209,7 +261,7 @@ Timing reports separate first-load cost, each component invocation, the five vec
 
 ### Validated on this device, 2026-10-15
 
-All four corrected programs contain **one QNN delegate each and zero CPU compute nodes**. Physical-device checks passed for every component. The current suite has 40 regression tests covering conversion rewrites, masked and causal convolution boundaries, layout equivalence, approximation bounds, grouped-flow equivalence, fixed-schedule validation, and bundle compatibility. Python package dependency checks pass.
+All four corrected programs contain **one QNN delegate each and zero CPU compute nodes**. Physical-device checks passed for every component. The current suite has 82 regression tests covering conversion rewrites, masked and causal convolution boundaries, layout equivalence, approximation bounds, grouped-flow equivalence, fixed-schedule validation, and bundle compatibility. Python package dependency checks pass.
 
 | Speech case | Audio duration | Warm synthesis median | Real-time factor |
 | --- | ---: | ---: | ---: |

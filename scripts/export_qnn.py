@@ -41,7 +41,7 @@ def main() -> None:
     parser.add_argument("--precision", choices=["fp16", "a16w8"], default="fp16")
     parser.add_argument("--calibration", type=Path)
     parser.add_argument("--gelu", choices=["exact", "tanh"], default="exact")
-    parser.add_argument("--conv-layout", choices=["original", "channel-last"], default="original")
+    parser.add_argument("--conv-layout", choices=["original", "channel-last", "pointwise-2d", "gelu-last"], default="original")
     parser.add_argument("--quant-scope", choices=["all", "affine"], default="all")
     parser.add_argument("--ptq-only", action="store_true", help="Calibrate and check eager PTQ without compiling a program")
     args = parser.parse_args()

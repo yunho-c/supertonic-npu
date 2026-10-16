@@ -87,6 +87,45 @@ class ChannelLastConvNeXt(torch.nn.Module):
         return output if mask is None else output * mask
 
 
+class PointwiseConv2d(torch.nn.Module):
+    """Keep a ConvNeXt pointwise pair in rank four across its activation.
+
+    QNN already lowers each Conv1d to Conv2d. Expanding before the first
+    projection and squeezing only after the second lets its layout pass carry
+    channels-last through GELU. The weights retain their original storage.
+    """
+
+    def __init__(self, conv, *, expand_input=False, squeeze_output=False):
+        super().__init__()
+        if (not isinstance(conv, torch.nn.Conv1d) or conv.kernel_size != (1,)
+                or conv.stride != (1,) or conv.padding != (0,) or conv.dilation != (1,)):
+            raise ValueError("Expected an unpadded, unit-stride pointwise Conv1d")
+        # Register the 4D view as a static parameter. QNN's convolution visitor
+        # requires a constant filter and cannot consume a runtime unsqueeze.
+        self.weight = torch.nn.Parameter(conv.weight.detach().unsqueeze(2), requires_grad=conv.weight.requires_grad)
+        self.bias = conv.bias
+        self.groups = conv.groups
+        self.expand_input = expand_input
+        self.squeeze_output = squeeze_output
+
+    def forward(self, inputs):
+        if self.expand_input:
+            inputs = inputs.unsqueeze(2)
+        output = F.conv2d(inputs, self.weight, self.bias, groups=self.groups)
+        return output.squeeze(2) if self.squeeze_output else output
+
+
+class ChannelLastActivation(torch.nn.Module):
+    """Evaluate an elementwise activation in BLC, preserving both Conv1ds."""
+
+    def __init__(self, activation):
+        super().__init__()
+        self.activation = activation
+
+    def forward(self, inputs):
+        return self.activation(inputs.transpose(1, 2)).transpose(1, 2)
+
+
 def optimize_modules(model, gelu="exact", conv_layout="original"):
     from examples.models.supertonic.model.vocoder import DecoderConvNeXtBlock
 
@@ -98,4 +137,13 @@ def optimize_modules(model, gelu="exact", conv_layout="original"):
             setattr(model, name, ChannelLastConvNeXt(child.block, masked=True))
         elif conv_layout == "channel-last" and isinstance(child, DecoderConvNeXtBlock):
             setattr(model, name, ChannelLastConvNeXt(child, masked=False))
+        elif conv_layout == "pointwise-2d" and isinstance(child, (MaskAwareConvNeXtBlock, DecoderConvNeXtBlock)):
+            block = child.block if isinstance(child, MaskAwareConvNeXtBlock) else child
+            if not isinstance(block.pwconv1, PointwiseConv2d):
+                block.pwconv1 = PointwiseConv2d(block.pwconv1, expand_input=True)
+                block.pwconv2 = PointwiseConv2d(block.pwconv2, squeeze_output=True)
+        elif conv_layout == "gelu-last" and isinstance(child, (MaskAwareConvNeXtBlock, DecoderConvNeXtBlock)):
+            block = child.block if isinstance(child, MaskAwareConvNeXtBlock) else child
+            if not isinstance(block.act, ChannelLastActivation):
+                block.act = ChannelLastActivation(block.act)
     return model

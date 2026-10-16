@@ -31,6 +31,8 @@ def make_bundle(base, buckets, output, vocoders=()):
         if length > maximum or length in entries:
             raise ValueError(f"Duplicate bucket or length exceeds base noise capacity: {length}")
         for name, record, model_dir in (("vector_estimator", vector, directory), ("vocoder", vocoder, vocoder_dir)):
+            if record.get("profile_level", "off") != "off":
+                raise ValueError(f"Profiling programs cannot be used in synthesis bundles: {model_dir}")
             original = json.loads((base / f"{name}.json").read_text())
             if record["model_sha256"] != original["model_sha256"] or record["cpu_compute"]:
                 raise ValueError(f"Incompatible weights or CPU fallback in {directory}")

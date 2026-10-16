@@ -1,11 +1,12 @@
 from pathlib import Path
 from types import SimpleNamespace
+import copy
 
 import pytest
 import torch
 
 from scripts.flow_unroll import UnrolledFlow
-from scripts.qnn_transformations import prepare_vector_graph, replace_masked_padding
+from scripts.qnn_transformations import optimize_modules, prepare_vector_graph, replace_masked_padding
 
 
 @pytest.fixture
@@ -28,7 +29,10 @@ def flow(monkeypatch):
 
 @pytest.mark.parametrize("unroll", [1, 2, 4, 8])
 @pytest.mark.parametrize("reuse,specialize", [(False, False), (True, False), (True, True)])
-def test_grouped_flow_matches_each_original_step_and_shares_parameters(flow, unroll, reuse, specialize):
+@pytest.mark.parametrize("layout", ["original", "pointwise-2d", "gelu-last"])
+def test_grouped_flow_matches_each_original_step_and_shares_parameters(flow, unroll, reuse, specialize, layout):
+    reference = copy.deepcopy(flow)
+    flow = optimize_modules(flow, conv_layout=layout)
     grouped = UnrolledFlow(flow, unroll, 8, reuse, specialize)
     assert {id(p) for p in grouped.parameters()} == {id(p) for p in flow.parameters()}
     for valid_text, valid_latent in ((1, 1), (5, 7)):
@@ -42,7 +46,7 @@ def test_grouped_flow_matches_each_original_step_and_shares_parameters(flow, unr
             for start in range(0, 8, unroll):
                 actual = grouped(actual, *inputs[1:], torch.tensor([float(start)]), torch.tensor([8.]))
                 for step in range(start, start + unroll):
-                    expected = flow(expected, *inputs[1:], torch.tensor([float(step)]), torch.tensor([8.]))
+                    expected = reference(expected, *inputs[1:], torch.tensor([float(step)]), torch.tensor([8.]))
                 torch.testing.assert_close(actual, expected, rtol=2e-5, atol=2e-6)
                 assert torch.count_nonzero(actual[..., valid_latent:]) == 0
 

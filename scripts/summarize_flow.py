@@ -9,6 +9,21 @@ from pathlib import Path
 from qnn_runtime import ROOT
 
 
+def bundle_programs(directory):
+    directory = (ROOT / directory).resolve()
+    bundle_path = directory / "bundle.json"
+    if not bundle_path.exists():
+        return set(directory.glob("*.pte"))
+    bundle = json.loads(bundle_path.read_text())
+    base = (directory / bundle["base"]).resolve()
+    paths = {base / f"{name}.pte" for name in ("duration_predictor", "text_encoder")}
+    for bucket in bundle["buckets"]:
+        model = (directory / bucket["models"]).resolve()
+        vocoder = (directory / bucket.get("vocoder", bucket["models"])).resolve()
+        paths.update((model / "vector_estimator.pte", vocoder / "vocoder.pte"))
+    return paths
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--work", type=Path, default=ROOT / "artifacts/flow")
@@ -17,12 +32,13 @@ def main():
     args.work = args.work.resolve()
     result = {"archived_utc": datetime.now(timezone.utc).isoformat(),
               "device": "Snapdragon X2 Elite X2E84100 / SC8480XP / HTP V81",
-              "precision": "FP16 HTP, FP32 public tensors; original convolution layout",
+              "precision": "FP16 HTP, FP32 public tensors; convolution layout recorded per program",
               "schedule_steps": 8, "qairt": "2.50.40.260831", "executorch": "1.5.0",
               "python": "Global 3.14.7 x64 without a virtualenv; native ARM64 inference",
               "status": "Experimental; the existing conservative preset is unchanged",
               "limitations": "Numerical screening is not perceptual qualification. Host traces do not measure HTP activity. No compiler or profiler runs during timing screens.",
               "programs": [], "measurements": {}, "profiles": {}, "host_traces": {}}
+    referenced = set()
     for path in sorted(args.work.glob("*-l*/vector_estimator.json")):
         entry = {"path": path.relative_to(ROOT).as_posix(), "metadata": json.loads(path.read_text())}
         binary = path.with_suffix(".pte")
@@ -35,6 +51,8 @@ def main():
         report = json.loads(path.read_text())
         if "cases" not in report or "variants" not in report:
             continue
+        for directory in report["variants"].values():
+            referenced.update(bundle_programs(directory))
         if path.parent.name.startswith("quality-"):
             report["purpose"] = "Secondary-seed numerical checks; too few warm requests for performance conclusions"
         for variants in report["cases"].values():
@@ -47,6 +65,12 @@ def main():
                         for run in runs[1:]]
                 entry["report"] = source.relative_to(ROOT).as_posix()
         result["measurements"][path.parent.name] = report
+    result["referenced_programs"] = {}
+    for binary in sorted(referenced):
+        with binary.open("rb") as stream:
+            digest = hashlib.file_digest(stream, "sha256").hexdigest()
+        result["referenced_programs"][binary.relative_to(ROOT).as_posix()] = {
+            "pte_sha256": digest, "metadata": json.loads(binary.with_suffix(".json").read_text())}
     for path in sorted(args.work.glob("profiles/*/vector_estimator/summary.json")):
         result["profiles"][path.parents[1].name] = {
             "summary": json.loads(path.read_text()),

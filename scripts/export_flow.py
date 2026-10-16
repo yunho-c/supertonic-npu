@@ -2,6 +2,7 @@
 
 import argparse
 import collections
+import contextlib
 import hashlib
 import json
 import os
@@ -22,7 +23,7 @@ from examples.models.supertonic.model.config import TTSConfig
 from examples.models.supertonic.source_transformations.mlx import exportable_vector_estimator, replace_same_padding
 from flow_unroll import UnrolledFlow
 from qnn_runtime import DEFAULT_SDK, metrics
-from qnn_transformations import prepare_vector_graph, replace_masked_padding
+from qnn_transformations import optimize_modules, prepare_vector_graph, replace_masked_padding
 
 
 def main():
@@ -34,10 +35,14 @@ def main():
     parser.add_argument("--schedule-steps", type=int, default=8)
     parser.add_argument("--reuse-conditioning", action="store_true")
     parser.add_argument("--specialize-time", action="store_true")
+    parser.add_argument("--conv-layout", choices=("original", "pointwise-2d", "gelu-last"), default="original")
     parser.add_argument("--text-length", type=int, default=128)
     parser.add_argument("--latent-length", type=int, default=96)
     parser.add_argument("--reference-only", action="store_true")
+    parser.add_argument("--optrace", action="store_true", help="Build a separate profiling program and HTP schematic")
     args = parser.parse_args()
+    args.output = args.output.resolve()
+    args.qnn_sdk = args.qnn_sdk.resolve()
     if args.schedule_steps != 8:
         parser.error("This prototype qualifies the eight-step schedule only")
     if args.specialize_time and not args.reuse_conditioning:
@@ -51,6 +56,7 @@ def main():
     config = TTSConfig.from_json(args.assets / "onnx/tts.json")
     estimator = load_vector_estimator(args.assets / "onnx/vector_estimator.onnx", config).eval()
     estimator = exportable_vector_estimator(replace_masked_padding(replace_same_padding(estimator)))
+    estimator = optimize_modules(estimator, conv_layout=args.conv_layout)
     model = UnrolledFlow(estimator, args.unroll, args.schedule_steps, args.reuse_conditioning, args.specialize_time).eval()
     inputs = common.example_inputs(config, common.ExportBounds(args.text_length, args.latent_length))["vector_estimator"]
     names = common.method_contracts(config)["vector_estimator"].input_names
@@ -80,7 +86,8 @@ def main():
     print(f"FP32 vs {args.unroll} original ONNX steps: {comparison}", flush=True)
     np.savez(args.output / "vector_estimator_reference.npz", **feed, expected=expected)
     manifest = json.loads((args.assets / "manifest.json").read_text())
-    record = {"component": "vector_estimator", "precision": "fp16", "gelu": "exact", "conv_layout": "original",
+    record = {"component": "vector_estimator", "precision": "fp16", "gelu": "exact", "conv_layout": args.conv_layout,
+              "profile_level": "optrace" if args.optrace else "off",
               "flow_unroll": args.unroll, "flow_total_steps": args.schedule_steps,
               "reuse_conditioning": args.reuse_conditioning, "specialize_time": args.specialize_time,
               "qnn_sdk": args.qnn_sdk.name, "target_soc": 88, "htp_arch": 81,
@@ -112,10 +119,17 @@ def main():
             model = prepare_vector_graph(model, inputs)
             record["captured_operations"] = dict(collections.Counter(str(n.target) for n in model.graph.nodes if n.op == "call_function"))
             specs = generate_qnn_executorch_compiler_spec(soc_model=QcomChipset.SC8480XP,
-                        backend_options=generate_htp_compiler_spec(use_fp16=True), profile_level=0)
+                        backend_options=generate_htp_compiler_spec(use_fp16=True), profile_level=3 if args.optrace else 0)
             compile_start = time.perf_counter()
             print("Compiling QNN graph", flush=True)
-            edge = to_edge_transform_and_lower_to_qnn(model, inputs, specs)
+            # QNN writes its Optrace schematic in the compiler's working directory.
+            with contextlib.chdir(args.output):
+                edge = to_edge_transform_and_lower_to_qnn(model, inputs, specs)
+            if args.optrace:
+                schematics = sorted(args.output.glob("*_schematic.bin"))
+                if len(schematics) != 1:
+                    raise RuntimeError(f"Expected one HTP schematic, found {schematics}")
+                record["schematic"] = schematics[0].name
             graph = edge.exported_program().graph
             (args.output / "vector_estimator_graph.txt").write_text(str(graph), encoding="utf-8")
             compute = [str(n.target) for n in graph.nodes if n.op == "call_function"]

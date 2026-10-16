@@ -26,7 +26,7 @@ def test_bundle_shares_base_and_applies_vocoder_override_without_copying(tmp_pat
     assert list(out.glob("*.pte")) == []
 
 
-@pytest.mark.parametrize("problem", ["text", "vocoder", "missing", "fallback", "hash"])
+@pytest.mark.parametrize("problem", ["text", "vocoder", "missing", "fallback", "hash", "profiling"])
 def test_bundle_rejects_incompatible_or_incomplete_programs(tmp_path, problem):
     base = models(tmp_path / "base", 128)
     candidate = models(tmp_path / "candidate", 64)
@@ -42,6 +42,8 @@ def test_bundle_rejects_incompatible_or_incomplete_programs(tmp_path, problem):
         metadata["cpu_compute"] = ["aten.add"]
     elif problem == "hash":
         metadata["model_sha256"] = "wrong"
+    elif problem == "profiling":
+        metadata["profile_level"] = "optrace"
     metadata_path.write_text(json.dumps(metadata))
     with pytest.raises((ValueError, FileNotFoundError)):
         make_bundle(base, [candidate], tmp_path / "bundle")
