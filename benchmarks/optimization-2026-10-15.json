@@ -1,0 +1,4712 @@
+{
+  "archived_utc": "2026-10-15T23:48:31.782460+00:00",
+  "device": "Snapdragon X2 Elite X2E84100 / SC8480XP / HTP V81",
+  "qairt": "2.50.40.260831",
+  "executorch": "1.5.0",
+  "torch": "2.14.0",
+  "torchao": "0.18.0",
+  "python": "Global 3.14.7 x64, no venv; inference process native ARM64",
+  "power_plan": "Balanced",
+  "recommended": "artifacts/optimized (conservative FP16 preset), subject to the recorded absolute ONNX limitations and listening evaluation",
+  "experiments": {
+    "bucketing": "64/96/128 latent frames; six initial cases had bit-exact audio versus the 128-frame baseline",
+    "layout": "Exact FP32 graph reformulation: keep ConvNeXt pointwise MLP in BLC layout; FP16 rounding changes",
+    "tanh_gelu": "Rejected as a full-pipeline speed improvement; 297.6 ms versus 296.0 ms at 96 frames in the screen",
+    "full_a16w8": "Rejected: vocoder held-out relative L2 5.215; calibration-case device error 6.419; eager PTQ calibration-sample error 0.124",
+    "affine_a16w8": "Rejected: 37 delegate partitions with CPU compute remaining; eager PTQ sample error 0.109",
+    "full_flow_layout": "Experimental: additional absolute numerical failures on short English and Portuguese at seed 42, Korean spectral error at seed 43"
+  },
+  "measurements": {
+    "final-8steps": {
+      "started_utc": "2026-10-15T23:36:38.852008+00:00",
+      "steps": 8,
+      "seed": 42,
+      "requests_per_case": 16,
+      "warm_requests_per_case": 15,
+      "noise": "Identical seed at base capacity 128, cropped per channel by native runner",
+      "timing": "Warm native synthesis; excludes loading, Python preprocessing and file I/O; profile collection disabled",
+      "limitations": "Small held-out corpus, one seed; numerical checks do not establish perceptual quality or WER",
+      "numerical_gates": {
+        "stage_relative_l2_max": 0.05,
+        "final_latent_relative_l2_max": 0.05,
+        "spectral_convergence_max": 0.1
+      },
+      "variants": {
+        "baseline": "artifacts/qnn",
+        "conservative": "artifacts/optimized",
+        "fast": "artifacts/optimized-fast"
+      },
+      "cases": {
+        "en-main": {
+          "baseline": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/en-main/baseline/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 359.209,
+              "synthesis_ms_p90": 388.97436,
+              "rtf_median": 0.062253623379726945,
+              "stage_ms_median": {
+                "duration_predictor": 3.498,
+                "text_encoder": 4.1815,
+                "vector_estimator": 252.34120000000001,
+                "vocoder": 103.4053
+              }
+            },
+            "duration_seconds": 5.770089626312256,
+            "bucket_length": 128,
+            "spectral_convergence": 0.02707905412647541,
+            "flow_relative_l2": 0.009443822335071544,
+            "waveform_cosine": 0.9952072658040296,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 0.9999999999999998,
+              "sqnr_db": 327.2317835080758
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0002002716064453125,
+                "rmse": 0.0002002716064453125,
+                "relative_l2": 3.3056883340369726e-05,
+                "cosine": 1.0,
+                "sqnr_db": 89.6147618972544
+              },
+              "text_encoder": {
+                "max_error": 0.007447242736816406,
+                "rmse": 0.000510217271262454,
+                "relative_l2": 0.002455966959111808,
+                "cosine": 0.99999699821403,
+                "sqnr_db": 52.19554960380911
+              },
+              "vocoder": {
+                "max_error": 0.006128184497356415,
+                "rmse": 0.00031301028368843604,
+                "relative_l2": 0.0068687957069511595,
+                "cosine": 0.9999764425914145,
+                "sqnr_db": 43.26238800603721
+              }
+            },
+            "warm_p90_rtf": 0.06741218684476465
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/en-main/conservative/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 239.1452,
+              "synthesis_ms_p90": 258.28586,
+              "rtf_median": 0.041445663148388476,
+              "stage_ms_median": {
+                "duration_predictor": 3.5363,
+                "text_encoder": 4.4916,
+                "vector_estimator": 219.4644,
+                "vocoder": 6.2508
+              }
+            },
+            "duration_seconds": 5.770089626312256,
+            "bucket_length": 96,
+            "spectral_convergence": 0.03129386902915553,
+            "flow_relative_l2": 0.009443822335071544,
+            "waveform_cosine": 0.9947994036687462,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 33.424496602256625,
+            "waveform_vs_baseline": {
+              "max_error": 0.0160675048828125,
+              "rmse": 0.001030889405691561,
+              "relative_l2": 0.022616878370502122,
+              "cosine": 0.9998107816900831,
+              "sqnr_db": 32.91134675038626
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0002002716064453125,
+                "rmse": 0.0002002716064453125,
+                "relative_l2": 3.3056883340369726e-05,
+                "cosine": 1.0,
+                "sqnr_db": 89.6147618972544
+              },
+              "text_encoder": {
+                "max_error": 0.007447242736816406,
+                "rmse": 0.000510217271262454,
+                "relative_l2": 0.002455966959111808,
+                "cosine": 0.99999699821403,
+                "sqnr_db": 52.19554960380911
+              },
+              "vocoder": {
+                "max_error": 0.015242058783769608,
+                "rmse": 0.001117626726112466,
+                "relative_l2": 0.02452555094303694,
+                "cosine": 0.9997626018989398,
+                "sqnr_db": 32.20762455656822
+              }
+            },
+            "warm_p90_rtf": 0.04476288528035813
+          },
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/en-main/fast/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 145.0819,
+              "synthesis_ms_p90": 156.51592,
+              "rtf_median": 0.025143785266558482,
+              "stage_ms_median": {
+                "duration_predictor": 3.5081,
+                "text_encoder": 4.7923,
+                "vector_estimator": 118.4012,
+                "vocoder": 7.6332
+              }
+            },
+            "duration_seconds": 5.770089626312256,
+            "bucket_length": 96,
+            "spectral_convergence": 0.06608779383113639,
+            "flow_relative_l2": 0.02245689321293242,
+            "waveform_cosine": 0.9086090773586625,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 59.61072801628022,
+            "waveform_vs_baseline": {
+              "max_error": 0.385498046875,
+              "rmse": 0.019669645102700084,
+              "relative_l2": 0.4315360778979749,
+              "cosine": 0.906302568753144,
+              "sqnr_db": 7.299657798418141
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0002002716064453125,
+                "rmse": 0.0002002716064453125,
+                "relative_l2": 3.3056883340369726e-05,
+                "cosine": 1.0,
+                "sqnr_db": 89.6147618972544
+              },
+              "text_encoder": {
+                "max_error": 0.007447242736816406,
+                "rmse": 0.000510217271262454,
+                "relative_l2": 0.002455966959111808,
+                "cosine": 0.99999699821403,
+                "sqnr_db": 52.19554960380911
+              },
+              "vocoder": {
+                "max_error": 0.025624826550483704,
+                "rmse": 0.0011282943951131934,
+                "relative_l2": 0.02462272078367743,
+                "cosine": 0.9997629774149266,
+                "sqnr_db": 32.173279193771364
+              }
+            },
+            "warm_p90_rtf": 0.027125388015858513
+          }
+        },
+        "en-short": {
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/en-short/fast/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 106.6374,
+              "synthesis_ms_p90": 113.80168,
+              "rtf_median": 0.0343900800514733,
+              "stage_ms_median": {
+                "duration_predictor": 5.0708,
+                "text_encoder": 4.7809,
+                "vector_estimator": 83.4477,
+                "vocoder": 5.1884
+              }
+            },
+            "duration_seconds": 3.100818634033203,
+            "bucket_length": 64,
+            "spectral_convergence": 0.0558949404404943,
+            "flow_relative_l2": 0.055022104491260264,
+            "waveform_cosine": 0.940071061407485,
+            "numerical_gates_pass": false,
+            "latency_reduction_percent": 69.61332122471788,
+            "waveform_vs_baseline": {
+              "max_error": 0.198822021484375,
+              "rmse": 0.011508593810044694,
+              "relative_l2": 0.2239807387675669,
+              "cosine": 0.9747606509964503,
+              "sqnr_db": 12.995786544622662
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0008726119995117188,
+                "rmse": 0.0008726119995117188,
+                "relative_l2": 0.00026794099207275347,
+                "cosine": 1.0,
+                "sqnr_db": 71.4392167790397
+              },
+              "text_encoder": {
+                "max_error": 0.004741281270980835,
+                "rmse": 0.0003684657979034488,
+                "relative_l2": 0.0020249893709854082,
+                "cosine": 0.9999979527052479,
+                "sqnr_db": 53.87154504043811
+              },
+              "vocoder": {
+                "max_error": 0.007368400692939758,
+                "rmse": 0.0010831228552954427,
+                "relative_l2": 0.021024986838138363,
+                "cosine": 0.9998250206518687,
+                "sqnr_db": 33.54528534805705
+              }
+            },
+            "warm_p90_rtf": 0.03670052764484949
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/en-short/conservative/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 147.4414,
+              "synthesis_ms_p90": 162.3728,
+              "rtf_median": 0.04754918582881142,
+              "stage_ms_median": {
+                "duration_predictor": 3.5303,
+                "text_encoder": 4.598,
+                "vector_estimator": 131.3328,
+                "vocoder": 4.1988
+              }
+            },
+            "duration_seconds": 3.100818634033203,
+            "bucket_length": 64,
+            "spectral_convergence": 0.04189729734309635,
+            "flow_relative_l2": 0.018525337722488093,
+            "waveform_cosine": 0.9614532360650571,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 57.9860868702924,
+            "waveform_vs_baseline": {
+              "max_error": 0.010162353515625,
+              "rmse": 0.0013087889038842788,
+              "relative_l2": 0.025471704920799226,
+              "cosine": 0.9997275450212412,
+              "sqnr_db": 31.878839700716362
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0008726119995117188,
+                "rmse": 0.0008726119995117188,
+                "relative_l2": 0.00026794099207275347,
+                "cosine": 1.0,
+                "sqnr_db": 71.4392167790397
+              },
+              "text_encoder": {
+                "max_error": 0.004741281270980835,
+                "rmse": 0.0003684657979034488,
+                "relative_l2": 0.0020249893709854082,
+                "cosine": 0.9999979527052479,
+                "sqnr_db": 53.87154504043811
+              },
+              "vocoder": {
+                "max_error": 0.009304679930210114,
+                "rmse": 0.001120197723054261,
+                "relative_l2": 0.02182005445795232,
+                "cosine": 0.9998063470758954,
+                "sqnr_db": 33.22288339689792
+              }
+            },
+            "warm_p90_rtf": 0.05236449440088773
+          },
+          "baseline": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/en-short/baseline/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 350.9347,
+              "synthesis_ms_p90": 369.57676000000004,
+              "rtf_median": 0.11317485634345707,
+              "stage_ms_median": {
+                "duration_predictor": 3.4705,
+                "text_encoder": 4.1646,
+                "vector_estimator": 245.3671,
+                "vocoder": 93.3102
+              }
+            },
+            "duration_seconds": 3.100818634033203,
+            "bucket_length": 128,
+            "spectral_convergence": 0.04121644364574174,
+            "flow_relative_l2": 0.018525337722488093,
+            "waveform_cosine": 0.9594623088110549,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0000000000000002,
+              "sqnr_db": 325.57537810232714
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0008726119995117188,
+                "rmse": 0.0008726119995117188,
+                "relative_l2": 0.00026794099207275347,
+                "cosine": 1.0,
+                "sqnr_db": 71.4392167790397
+              },
+              "text_encoder": {
+                "max_error": 0.004741281270980835,
+                "rmse": 0.0003684657979034488,
+                "relative_l2": 0.0020249893709854082,
+                "cosine": 0.9999979527052479,
+                "sqnr_db": 53.87154504043811
+              },
+              "vocoder": {
+                "max_error": 0.006230112165212631,
+                "rmse": 0.000648637679964077,
+                "relative_l2": 0.012634652980463562,
+                "cosine": 0.9999206195438548,
+                "sqnr_db": 37.96873363560856
+              }
+            },
+            "warm_p90_rtf": 0.11918683535492539
+          }
+        },
+        "ko": {
+          "baseline": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/ko/baseline/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 325.7915,
+              "synthesis_ms_p90": 375.57365999999996,
+              "rtf_median": 0.060228850878345876,
+              "stage_ms_median": {
+                "duration_predictor": 3.4825,
+                "text_encoder": 4.1466,
+                "vector_estimator": 229.4438,
+                "vocoder": 89.2578
+              }
+            },
+            "duration_seconds": 5.409226417541504,
+            "bucket_length": 128,
+            "spectral_convergence": 0.03813179183099273,
+            "flow_relative_l2": 0.010109510296474708,
+            "waveform_cosine": 0.9833258234856128,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0,
+              "sqnr_db": 326.8033813751721
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0020399093627929688,
+                "rmse": 0.0020399093627929688,
+                "relative_l2": 0.0003592877737175703,
+                "cosine": 1.0,
+                "sqnr_db": 68.89115122492102
+              },
+              "text_encoder": {
+                "max_error": 0.008049249649047852,
+                "rmse": 0.000407876771303039,
+                "relative_l2": 0.0019498728405447326,
+                "cosine": 0.9999981242536948,
+                "sqnr_db": 54.199874197882174
+              },
+              "vocoder": {
+                "max_error": 0.00583677738904953,
+                "rmse": 0.0004662536684231003,
+                "relative_l2": 0.010412404801256698,
+                "cosine": 0.999946087508582,
+                "sqnr_db": 39.64897912486596
+              }
+            },
+            "warm_p90_rtf": 0.06943204647194236
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/ko/conservative/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 243.0646,
+              "synthesis_ms_p90": 257.23040000000003,
+              "rtf_median": 0.04493518568533799,
+              "stage_ms_median": {
+                "duration_predictor": 3.5422,
+                "text_encoder": 4.2623,
+                "vector_estimator": 222.41209999999998,
+                "vocoder": 6.2604
+              }
+            },
+            "duration_seconds": 5.409226417541504,
+            "bucket_length": 96,
+            "spectral_convergence": 0.03860336509753138,
+            "flow_relative_l2": 0.010109510296474708,
+            "waveform_cosine": 0.9829701040743559,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 25.392590046087747,
+            "waveform_vs_baseline": {
+              "max_error": 0.009033203125,
+              "rmse": 0.0008126369877517919,
+              "relative_l2": 0.018134834068869926,
+              "cosine": 0.9998660098557113,
+              "sqnr_db": 34.829728275951446
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0020399093627929688,
+                "rmse": 0.0020399093627929688,
+                "relative_l2": 0.0003592877737175703,
+                "cosine": 1.0,
+                "sqnr_db": 68.89115122492102
+              },
+              "text_encoder": {
+                "max_error": 0.008049249649047852,
+                "rmse": 0.000407876771303039,
+                "relative_l2": 0.0019498728405447326,
+                "cosine": 0.9999981242536948,
+                "sqnr_db": 54.199874197882174
+              },
+              "vocoder": {
+                "max_error": 0.011829495429992676,
+                "rmse": 0.0009356370934571931,
+                "relative_l2": 0.0208947035142831,
+                "cosine": 0.9998064144267719,
+                "sqnr_db": 33.59927573809731
+              }
+            },
+            "warm_p90_rtf": 0.04755400867780857
+          },
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/ko/fast/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 140.9821,
+              "synthesis_ms_p90": 152.34416,
+              "rtf_median": 0.026063264012155158,
+              "stage_ms_median": {
+                "duration_predictor": 4.0056,
+                "text_encoder": 6.2732,
+                "vector_estimator": 114.473,
+                "vocoder": 6.836
+              }
+            },
+            "duration_seconds": 5.409226417541504,
+            "bucket_length": 96,
+            "spectral_convergence": 0.06254253923057011,
+            "flow_relative_l2": 0.022106910207007956,
+            "waveform_cosine": 0.9527816567317644,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 56.72628045851411,
+            "waveform_vs_baseline": {
+              "max_error": 0.22137451171875,
+              "rmse": 0.014921903255210207,
+              "relative_l2": 0.33299768974781124,
+              "cosine": 0.9441117223837147,
+              "sqnr_db": 9.551175590129326
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0020399093627929688,
+                "rmse": 0.0020399093627929688,
+                "relative_l2": 0.0003592877737175703,
+                "cosine": 1.0,
+                "sqnr_db": 68.89115122492102
+              },
+              "text_encoder": {
+                "max_error": 0.008049249649047852,
+                "rmse": 0.000407876771303039,
+                "relative_l2": 0.0019498728405447326,
+                "cosine": 0.9999981242536948,
+                "sqnr_db": 54.199874197882174
+              },
+              "vocoder": {
+                "max_error": 0.014022782444953918,
+                "rmse": 0.0008998267909099632,
+                "relative_l2": 0.020105840611844762,
+                "cosine": 0.9998237434731688,
+                "sqnr_db": 33.933555292351706
+              }
+            },
+            "warm_p90_rtf": 0.02816376099657527
+          }
+        },
+        "es": {
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/es/fast/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 110.07719999999999,
+              "synthesis_ms_p90": 118.48156,
+              "rtf_median": 0.031377254472729925,
+              "stage_ms_median": {
+                "duration_predictor": 4.7301,
+                "text_encoder": 4.6818,
+                "vector_estimator": 88.5433,
+                "vocoder": 4.7282
+              }
+            },
+            "duration_seconds": 3.5081846714019775,
+            "bucket_length": 64,
+            "spectral_convergence": 0.07425329939973453,
+            "flow_relative_l2": 0.034888407032479564,
+            "waveform_cosine": 0.8824223315886772,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 69.76134534669166,
+            "waveform_vs_baseline": {
+              "max_error": 0.4771728515625,
+              "rmse": 0.026719218573853887,
+              "relative_l2": 0.4767324258627763,
+              "cosine": 0.8858092966996692,
+              "sqnr_db": 6.434506154060623
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0022056102752685547,
+                "rmse": 0.0022056102752685547,
+                "relative_l2": 0.0005991246213536927,
+                "cosine": 1.0,
+                "sqnr_db": 64.44965664947705
+              },
+              "text_encoder": {
+                "max_error": 0.0032863616943359375,
+                "rmse": 0.0003254509066312388,
+                "relative_l2": 0.0016960444675013493,
+                "cosine": 0.9999985697968862,
+                "sqnr_db": 55.411255308834996
+              },
+              "vocoder": {
+                "max_error": 0.01959827309474349,
+                "rmse": 0.0015227187093503189,
+                "relative_l2": 0.026955875812328358,
+                "cosine": 0.9997144051692493,
+                "sqnr_db": 31.386931062437
+              }
+            },
+            "warm_p90_rtf": 0.033772897124213004
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/es/conservative/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 146.6824,
+              "synthesis_ms_p90": 160.37792000000002,
+              "rtf_median": 0.04181148313611502,
+              "stage_ms_median": {
+                "duration_predictor": 3.5209,
+                "text_encoder": 4.5012,
+                "vector_estimator": 134.5467,
+                "vocoder": 4.2829
+              }
+            },
+            "duration_seconds": 3.5081846714019775,
+            "bucket_length": 64,
+            "spectral_convergence": 0.030641103296746162,
+            "flow_relative_l2": 0.006059134863638531,
+            "waveform_cosine": 0.9970235491801552,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 59.70574799033371,
+            "waveform_vs_baseline": {
+              "max_error": 0.01678466796875,
+              "rmse": 0.0015539927810165877,
+              "relative_l2": 0.027726811928258575,
+              "cosine": 0.9997285088917327,
+              "sqnr_db": 31.142001268061733
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0022056102752685547,
+                "rmse": 0.0022056102752685547,
+                "relative_l2": 0.0005991246213536927,
+                "cosine": 1.0,
+                "sqnr_db": 64.44965664947705
+              },
+              "text_encoder": {
+                "max_error": 0.0032863616943359375,
+                "rmse": 0.0003254509066312388,
+                "relative_l2": 0.0016960444675013493,
+                "cosine": 0.9999985697968862,
+                "sqnr_db": 55.411255308834996
+              },
+              "vocoder": {
+                "max_error": 0.028863754123449326,
+                "rmse": 0.0017256473063439028,
+                "relative_l2": 0.030861508974525182,
+                "cosine": 0.999603101150563,
+                "sqnr_db": 30.21165685820664
+              }
+            },
+            "warm_p90_rtf": 0.04571535851785936
+          },
+          "baseline": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/es/baseline/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 364.0281,
+              "synthesis_ms_p90": 392.34108,
+              "rtf_median": 0.10376537856090431,
+              "stage_ms_median": {
+                "duration_predictor": 3.4687,
+                "text_encoder": 4.3948,
+                "vector_estimator": 252.39000000000001,
+                "vocoder": 101.8585
+              }
+            },
+            "duration_seconds": 3.5081846714019775,
+            "bucket_length": 128,
+            "spectral_convergence": 0.026395821571386657,
+            "flow_relative_l2": 0.006059134863638531,
+            "waveform_cosine": 0.9971559503836439,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0,
+              "sqnr_db": 326.86616506892017
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0022056102752685547,
+                "rmse": 0.0022056102752685547,
+                "relative_l2": 0.0005991246213536927,
+                "cosine": 1.0,
+                "sqnr_db": 64.44965664947705
+              },
+              "text_encoder": {
+                "max_error": 0.0032863616943359375,
+                "rmse": 0.0003254509066312388,
+                "relative_l2": 0.0016960444675013493,
+                "cosine": 0.9999985697968862,
+                "sqnr_db": 55.411255308834996
+              },
+              "vocoder": {
+                "max_error": 0.020325792953372,
+                "rmse": 0.0008367300307481155,
+                "relative_l2": 0.014964095651676291,
+                "cosine": 0.9998910257354838,
+                "sqnr_db": 36.49899048840952
+              }
+            },
+            "warm_p90_rtf": 0.11183592562794265
+          }
+        },
+        "fr": {
+          "baseline": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/fr/baseline/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 348.396,
+              "synthesis_ms_p90": 367.38552,
+              "rtf_median": 0.10498748607859903,
+              "stage_ms_median": {
+                "duration_predictor": 3.4698,
+                "text_encoder": 4.1481,
+                "vector_estimator": 249.5735,
+                "vocoder": 89.2439
+              }
+            },
+            "duration_seconds": 3.3184525966644287,
+            "bucket_length": 128,
+            "spectral_convergence": 0.022540253211556248,
+            "flow_relative_l2": 0.006201412477768775,
+            "waveform_cosine": 0.9965698759265212,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0000000000000002,
+              "sqnr_db": 325.34765281823536
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0054857730865478516,
+                "rmse": 0.0054857730865478516,
+                "relative_l2": 0.001576874895615734,
+                "cosine": 1.0,
+                "sqnr_db": 56.044055217746156
+              },
+              "text_encoder": {
+                "max_error": 0.003542184829711914,
+                "rmse": 0.00038159536682782976,
+                "relative_l2": 0.0019233688823670186,
+                "cosine": 0.9999981570193653,
+                "sqnr_db": 54.31874829117646
+              },
+              "vocoder": {
+                "max_error": 0.008245177567005157,
+                "rmse": 0.0006125191628063143,
+                "relative_l2": 0.012663588306442165,
+                "cosine": 0.9999198888940365,
+                "sqnr_db": 37.94886433680331
+              }
+            },
+            "warm_p90_rtf": 0.11070988941330086
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/fr/conservative/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 150.0565,
+              "synthesis_ms_p90": 176.92434,
+              "rtf_median": 0.045218816245747064,
+              "stage_ms_median": {
+                "duration_predictor": 3.4874,
+                "text_encoder": 4.1577,
+                "vector_estimator": 137.2368,
+                "vocoder": 3.98
+              }
+            },
+            "duration_seconds": 3.3184525966644287,
+            "bucket_length": 64,
+            "spectral_convergence": 0.024863602149457723,
+            "flow_relative_l2": 0.006201412477768775,
+            "waveform_cosine": 0.9966579352565278,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 56.92932754681455,
+            "waveform_vs_baseline": {
+              "max_error": 0.021240234375,
+              "rmse": 0.0011090464951694367,
+              "relative_l2": 0.0229220306893477,
+              "cosine": 0.9998077726822324,
+              "sqnr_db": 32.79493820694463
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0054857730865478516,
+                "rmse": 0.0054857730865478516,
+                "relative_l2": 0.001576874895615734,
+                "cosine": 1.0,
+                "sqnr_db": 56.044055217746156
+              },
+              "text_encoder": {
+                "max_error": 0.003542184829711914,
+                "rmse": 0.00038159536682782976,
+                "relative_l2": 0.0019233688823670186,
+                "cosine": 0.9999981570193653,
+                "sqnr_db": 54.31874829117646
+              },
+              "vocoder": {
+                "max_error": 0.02337142825126648,
+                "rmse": 0.0013774425213248641,
+                "relative_l2": 0.028478072303774693,
+                "cosine": 0.9996596725788409,
+                "sqnr_db": 30.909788233405628
+              }
+            },
+            "warm_p90_rtf": 0.05331531334147639
+          },
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/fr/fast/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 110.4641,
+              "synthesis_ms_p90": 116.93772,
+              "rtf_median": 0.03328783384692985,
+              "stage_ms_median": {
+                "duration_predictor": 3.4999,
+                "text_encoder": 4.493,
+                "vector_estimator": 86.9493,
+                "vocoder": 10.8484
+              }
+            },
+            "duration_seconds": 3.3184525966644287,
+            "bucket_length": 64,
+            "spectral_convergence": 0.06715712919028727,
+            "flow_relative_l2": 0.02317661132004134,
+            "waveform_cosine": 0.8695889039706999,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 68.29352231368901,
+            "waveform_vs_baseline": {
+              "max_error": 0.28466796875,
+              "rmse": 0.02505012912596092,
+              "relative_l2": 0.5177418900816005,
+              "cosine": 0.863108625260644,
+              "sqnr_db": 5.7177339035581625
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0054857730865478516,
+                "rmse": 0.0054857730865478516,
+                "relative_l2": 0.001576874895615734,
+                "cosine": 1.0,
+                "sqnr_db": 56.044055217746156
+              },
+              "text_encoder": {
+                "max_error": 0.003542184829711914,
+                "rmse": 0.00038159536682782976,
+                "relative_l2": 0.0019233688823670186,
+                "cosine": 0.9999981570193653,
+                "sqnr_db": 54.31874829117646
+              },
+              "vocoder": {
+                "max_error": 0.03951118886470795,
+                "rmse": 0.0013932661429825193,
+                "relative_l2": 0.029112721414096012,
+                "cosine": 0.9996449009603879,
+                "sqnr_db": 30.718343909167963
+              }
+            },
+            "warm_p90_rtf": 0.035238629027740505
+          }
+        },
+        "pt": {
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/pt/fast/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 98.3535,
+              "synthesis_ms_p90": 110.12432,
+              "rtf_median": 0.022712559361304164,
+              "stage_ms_median": {
+                "duration_predictor": 3.7647,
+                "text_encoder": 4.5605,
+                "vector_estimator": 79.5663,
+                "vocoder": 4.2039
+              }
+            },
+            "duration_seconds": 4.330357551574707,
+            "bucket_length": 64,
+            "spectral_convergence": 0.033207566867328266,
+            "flow_relative_l2": 0.08169269931480548,
+            "waveform_cosine": 0.9915358150686644,
+            "numerical_gates_pass": false,
+            "latency_reduction_percent": 72.54628793522772,
+            "waveform_vs_baseline": {
+              "max_error": 0.23297119140625,
+              "rmse": 0.009631977099242005,
+              "relative_l2": 0.16274652300440545,
+              "cosine": 0.9866725943335197,
+              "sqnr_db": 15.769765622769087
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.005621433258056641,
+                "rmse": 0.005621433258056641,
+                "relative_l2": 0.0012378593653579349,
+                "cosine": 1.0,
+                "sqnr_db": 58.14657386428874
+              },
+              "text_encoder": {
+                "max_error": 0.0035817623138427734,
+                "rmse": 0.0003854951678757093,
+                "relative_l2": 0.00198658525649325,
+                "cosine": 0.9999980365855394,
+                "sqnr_db": 54.0378558396575
+              },
+              "vocoder": {
+                "max_error": 0.009073242545127869,
+                "rmse": 0.0011744226316190876,
+                "relative_l2": 0.019818459043664315,
+                "cosine": 0.9998687106277189,
+                "sqnr_db": 34.058602329860726
+              }
+            },
+            "warm_p90_rtf": 0.025430768403859397
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/pt/conservative/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 150.5426,
+              "synthesis_ms_p90": 161.61338,
+              "rtf_median": 0.0347644744610519,
+              "stage_ms_median": {
+                "duration_predictor": 3.5299,
+                "text_encoder": 4.4863,
+                "vector_estimator": 133.7054,
+                "vocoder": 4.3167
+              }
+            },
+            "duration_seconds": 4.330357551574707,
+            "bucket_length": 64,
+            "spectral_convergence": 0.028168539286764167,
+            "flow_relative_l2": 0.007636331323462124,
+            "waveform_cosine": 0.9965752328838324,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 57.97858547095747,
+            "waveform_vs_baseline": {
+              "max_error": 0.00994873046875,
+              "rmse": 0.001173641792288517,
+              "relative_l2": 0.019830416847922746,
+              "cosine": 0.9998813472708513,
+              "sqnr_db": 34.05336313107307
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.005621433258056641,
+                "rmse": 0.005621433258056641,
+                "relative_l2": 0.0012378593653579349,
+                "cosine": 1.0,
+                "sqnr_db": 58.14657386428874
+              },
+              "text_encoder": {
+                "max_error": 0.0035817623138427734,
+                "rmse": 0.0003854951678757093,
+                "relative_l2": 0.00198658525649325,
+                "cosine": 0.9999980365855394,
+                "sqnr_db": 54.0378558396575
+              },
+              "vocoder": {
+                "max_error": 0.008159160614013672,
+                "rmse": 0.0011567765653295611,
+                "relative_l2": 0.019570791794086054,
+                "cosine": 0.9998711810611147,
+                "sqnr_db": 34.1678320664556
+              }
+            },
+            "warm_p90_rtf": 0.037321024436245534
+          },
+          "baseline": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/pt/baseline/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 358.2521,
+              "synthesis_ms_p90": 379.97244,
+              "rtf_median": 0.0827303765251046,
+              "stage_ms_median": {
+                "duration_predictor": 3.468,
+                "text_encoder": 4.2177,
+                "vector_estimator": 249.76139999999998,
+                "vocoder": 93.9074
+              }
+            },
+            "duration_seconds": 4.330357551574707,
+            "bucket_length": 128,
+            "spectral_convergence": 0.02447470994850377,
+            "flow_relative_l2": 0.007636331323462124,
+            "waveform_cosine": 0.9965256816596042,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0,
+              "sqnr_db": 328.2536804474324
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.005621433258056641,
+                "rmse": 0.005621433258056641,
+                "relative_l2": 0.0012378593653579349,
+                "cosine": 1.0,
+                "sqnr_db": 58.14657386428874
+              },
+              "text_encoder": {
+                "max_error": 0.0035817623138427734,
+                "rmse": 0.0003854951678757093,
+                "relative_l2": 0.00198658525649325,
+                "cosine": 0.9999980365855394,
+                "sqnr_db": 54.0378558396575
+              },
+              "vocoder": {
+                "max_error": 0.0063134655356407166,
+                "rmse": 0.0004219113211716612,
+                "relative_l2": 0.007138058350850087,
+                "cosine": 0.9999753962312646,
+                "sqnr_db": 42.92839812354825
+              }
+            },
+            "warm_p90_rtf": 0.08774620466659282
+          }
+        },
+        "en-long": {
+          "baseline": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/en-long/baseline/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 347.831,
+              "synthesis_ms_p90": 366.05286,
+              "rtf_median": 0.04571978928374921,
+              "stage_ms_median": {
+                "duration_predictor": 3.4536,
+                "text_encoder": 4.1661,
+                "vector_estimator": 248.3972,
+                "vocoder": 91.9044
+              }
+            },
+            "duration_seconds": 7.607887268066406,
+            "bucket_length": 128,
+            "spectral_convergence": 0.09537775024998987,
+            "flow_relative_l2": 0.06030558934256136,
+            "waveform_cosine": 0.958995835371204,
+            "numerical_gates_pass": false,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0,
+              "sqnr_db": 328.52196796724763
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0012979507446289062,
+                "rmse": 0.0012979507446289062,
+                "relative_l2": 0.00016250825824938367,
+                "cosine": 1.0,
+                "sqnr_db": 75.7824912880397
+              },
+              "text_encoder": {
+                "max_error": 0.01009070873260498,
+                "rmse": 0.0005578881220870541,
+                "relative_l2": 0.0023867700871636325,
+                "cosine": 0.9999972265874112,
+                "sqnr_db": 52.44378827411852
+              },
+              "vocoder": {
+                "max_error": 0.009504174813628197,
+                "rmse": 0.0004015351790181913,
+                "relative_l2": 0.008719146047227835,
+                "cosine": 0.9999619880783814,
+                "sqnr_db": 41.190520955333774
+              }
+            },
+            "warm_p90_rtf": 0.048114916415294716
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/en-long/conservative/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 264.90229999999997,
+              "synthesis_ms_p90": 280.59623999999997,
+              "rtf_median": 0.0348194305187879,
+              "stage_ms_median": {
+                "duration_predictor": 3.52,
+                "text_encoder": 4.5036,
+                "vector_estimator": 245.055,
+                "vocoder": 9.6571
+              }
+            },
+            "duration_seconds": 7.607887268066406,
+            "bucket_length": 128,
+            "spectral_convergence": 0.09545127605559502,
+            "flow_relative_l2": 0.06030558934256136,
+            "waveform_cosine": 0.9590732305194234,
+            "numerical_gates_pass": false,
+            "latency_reduction_percent": 23.841664486489144,
+            "waveform_vs_baseline": {
+              "max_error": 0.01361083984375,
+              "rmse": 0.0009633150421882123,
+              "relative_l2": 0.02091802782436779,
+              "cosine": 0.9998438093421972,
+              "sqnr_db": 33.589585273121344
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0012979507446289062,
+                "rmse": 0.0012979507446289062,
+                "relative_l2": 0.00016250825824938367,
+                "cosine": 1.0,
+                "sqnr_db": 75.7824912880397
+              },
+              "text_encoder": {
+                "max_error": 0.01009070873260498,
+                "rmse": 0.0005578881220870541,
+                "relative_l2": 0.0023867700871636325,
+                "cosine": 0.9999972265874112,
+                "sqnr_db": 52.44378827411852
+              },
+              "vocoder": {
+                "max_error": 0.020212983712553978,
+                "rmse": 0.0010291466948554172,
+                "relative_l2": 0.022347432567196485,
+                "cosine": 0.9998125850479078,
+                "sqnr_db": 33.01544729041505
+              }
+            },
+            "warm_p90_rtf": 0.03688228152088738
+          },
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-8steps/en-long/fast/report.json",
+            "warm": {
+              "count": 15,
+              "synthesis_ms_median": 163.07209999999998,
+              "synthesis_ms_p90": 191.2233,
+              "rtf_median": 0.021434610630042972,
+              "stage_ms_median": {
+                "duration_predictor": 3.5212,
+                "text_encoder": 5.1845,
+                "vector_estimator": 142.0379,
+                "vocoder": 11.5715
+              }
+            },
+            "duration_seconds": 7.607887268066406,
+            "bucket_length": 128,
+            "spectral_convergence": 0.0729757121461857,
+            "flow_relative_l2": 0.04590672745076585,
+            "waveform_cosine": 0.9709833748781787,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 53.11743346625231,
+            "waveform_vs_baseline": {
+              "max_error": 0.430419921875,
+              "rmse": 0.014883260442076671,
+              "relative_l2": 0.32318446448990984,
+              "cosine": 0.9474729215655074,
+              "sqnr_db": 9.810990479512597
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0012979507446289062,
+                "rmse": 0.0012979507446289062,
+                "relative_l2": 0.00016250825824938367,
+                "cosine": 1.0,
+                "sqnr_db": 75.7824912880397
+              },
+              "text_encoder": {
+                "max_error": 0.01009070873260498,
+                "rmse": 0.0005578881220870541,
+                "relative_l2": 0.0023867700871636325,
+                "cosine": 0.9999972265874112,
+                "sqnr_db": 52.44378827411852
+              },
+              "vocoder": {
+                "max_error": 0.020200714468955994,
+                "rmse": 0.0010302214417510275,
+                "relative_l2": 0.022256995494725484,
+                "cosine": 0.9998127660653231,
+                "sqnr_db": 33.05066924219042
+              }
+            },
+            "warm_p90_rtf": 0.025134875591893546
+          }
+        }
+      },
+      "completed_utc": "2026-10-15T23:39:46.929883+00:00",
+      "numerical_pass_by_variant": {
+        "baseline": false,
+        "conservative": false,
+        "fast": false
+      }
+    },
+    "seed43-8steps": {
+      "started_utc": "2026-10-15T23:40:30.243743+00:00",
+      "steps": 8,
+      "seed": 43,
+      "requests_per_case": 3,
+      "warm_requests_per_case": 2,
+      "noise": "Identical seed at base capacity 128, cropped per channel by native runner",
+      "timing": "Warm native synthesis; excludes loading, Python preprocessing and file I/O; profile collection disabled",
+      "limitations": "Small held-out corpus, one seed; numerical checks do not establish perceptual quality or WER",
+      "numerical_gates": {
+        "stage_relative_l2_max": 0.05,
+        "final_latent_relative_l2_max": 0.05,
+        "spectral_convergence_max": 0.1
+      },
+      "variants": {
+        "conservative": "artifacts/optimized",
+        "fast": "artifacts/optimized-fast"
+      },
+      "cases": {
+        "en-main": {
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/en-main/conservative/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 243.2113,
+              "synthesis_ms_p90": 250.90442,
+              "rtf_median": 0.042150348882944985,
+              "stage_ms_median": {
+                "duration_predictor": 3.5183,
+                "text_encoder": 4.1429,
+                "vector_estimator": 223.87529999999998,
+                "vocoder": 11.21485
+              }
+            },
+            "duration_seconds": 5.770089626312256,
+            "bucket_length": 96,
+            "spectral_convergence": 0.0779955113272629,
+            "flow_relative_l2": 0.012383204101330368,
+            "waveform_cosine": 0.9732445206362753,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0000000000000002,
+              "sqnr_db": 326.6407077669753
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0002002716064453125,
+                "rmse": 0.0002002716064453125,
+                "relative_l2": 3.3056883340369726e-05,
+                "cosine": 1.0,
+                "sqnr_db": 89.6147618972544
+              },
+              "text_encoder": {
+                "max_error": 0.007447242736816406,
+                "rmse": 0.000510217271262454,
+                "relative_l2": 0.002455966959111808,
+                "cosine": 0.99999699821403,
+                "sqnr_db": 52.19554960380911
+              },
+              "vocoder": {
+                "max_error": 0.026764914393424988,
+                "rmse": 0.0012072736903735468,
+                "relative_l2": 0.02802686404857479,
+                "cosine": 0.999669117525426,
+                "sqnr_db": 31.048509862553992
+              }
+            },
+            "warm_p90_rtf": 0.043483626121827934
+          },
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/en-main/fast/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 117.36110000000001,
+              "synthesis_ms_p90": 124.68918000000001,
+              "rtf_median": 0.02033956197876577,
+              "stage_ms_median": {
+                "duration_predictor": 6.872199999999999,
+                "text_encoder": 4.1891,
+                "vector_estimator": 96.76345,
+                "vocoder": 9.3255
+              }
+            },
+            "duration_seconds": 5.770089626312256,
+            "bucket_length": 96,
+            "spectral_convergence": 0.051875670636876224,
+            "flow_relative_l2": 0.024967270945152272,
+            "waveform_cosine": 0.9860211403822273,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 51.74521085163395,
+            "waveform_vs_baseline": {
+              "max_error": 0.36328125,
+              "rmse": 0.013076298731504605,
+              "relative_l2": 0.3070854266808866,
+              "cosine": 0.9534848103883171,
+              "sqnr_db": 10.254815866661355
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0002002716064453125,
+                "rmse": 0.0002002716064453125,
+                "relative_l2": 3.3056883340369726e-05,
+                "cosine": 1.0,
+                "sqnr_db": 89.6147618972544
+              },
+              "text_encoder": {
+                "max_error": 0.007447242736816406,
+                "rmse": 0.000510217271262454,
+                "relative_l2": 0.002455966959111808,
+                "cosine": 0.99999699821403,
+                "sqnr_db": 52.19554960380911
+              },
+              "vocoder": {
+                "max_error": 0.020712286233901978,
+                "rmse": 0.0010242232304544332,
+                "relative_l2": 0.023488147555482067,
+                "cosine": 0.9997898590429686,
+                "sqnr_db": 32.58302466926348
+              }
+            },
+            "warm_p90_rtf": 0.021609574213787487
+          }
+        },
+        "en-short": {
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/en-short/fast/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 100.97149999999999,
+              "synthesis_ms_p90": 108.39262,
+              "rtf_median": 0.03256285288198452,
+              "stage_ms_median": {
+                "duration_predictor": 5.7953,
+                "text_encoder": 5.882899999999999,
+                "vector_estimator": 84.73555,
+                "vocoder": 4.32495
+              }
+            },
+            "duration_seconds": 3.100818634033203,
+            "bucket_length": 64,
+            "spectral_convergence": 0.04723178052353041,
+            "flow_relative_l2": 0.036059028587234206,
+            "waveform_cosine": 0.9781823851165536,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 28.33569087924279,
+            "waveform_vs_baseline": {
+              "max_error": 0.20269775390625,
+              "rmse": 0.01055765898551455,
+              "relative_l2": 0.19436371604531766,
+              "cosine": 0.9811437550619575,
+              "sqnr_db": 14.227696124826423
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0008726119995117188,
+                "rmse": 0.0008726119995117188,
+                "relative_l2": 0.00026794099207275347,
+                "cosine": 1.0,
+                "sqnr_db": 71.4392167790397
+              },
+              "text_encoder": {
+                "max_error": 0.004741281270980835,
+                "rmse": 0.0003684657979034488,
+                "relative_l2": 0.0020249893709854082,
+                "cosine": 0.9999979527052479,
+                "sqnr_db": 53.87154504043811
+              },
+              "vocoder": {
+                "max_error": 0.009241461753845215,
+                "rmse": 0.0010272115381520885,
+                "relative_l2": 0.018696125472481246,
+                "cosine": 0.9998712103342766,
+                "sqnr_db": 34.5649677198226
+              }
+            },
+            "warm_p90_rtf": 0.03495613023294265
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/en-short/conservative/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 140.8951,
+              "synthesis_ms_p90": 143.17302,
+              "rtf_median": 0.045438033634169026,
+              "stage_ms_median": {
+                "duration_predictor": 4.31365,
+                "text_encoder": 4.4175,
+                "vector_estimator": 127.97954999999999,
+                "vocoder": 3.88395
+              }
+            },
+            "duration_seconds": 3.100818634033203,
+            "bucket_length": 64,
+            "spectral_convergence": 0.05330655491069939,
+            "flow_relative_l2": 0.034536434267865096,
+            "waveform_cosine": 0.9445760105402441,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 0.9999999999999999,
+              "sqnr_db": 326.05819504176884
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0008726119995117188,
+                "rmse": 0.0008726119995117188,
+                "relative_l2": 0.00026794099207275347,
+                "cosine": 1.0,
+                "sqnr_db": 71.4392167790397
+              },
+              "text_encoder": {
+                "max_error": 0.004741281270980835,
+                "rmse": 0.0003684657979034488,
+                "relative_l2": 0.0020249893709854082,
+                "cosine": 0.9999979527052479,
+                "sqnr_db": 53.87154504043811
+              },
+              "vocoder": {
+                "max_error": 0.012236617505550385,
+                "rmse": 0.0010824700301653425,
+                "relative_l2": 0.019732085209478497,
+                "cosine": 0.9998521888744836,
+                "sqnr_db": 34.09654035565707
+              }
+            },
+            "warm_p90_rtf": 0.046172652095352096
+          }
+        },
+        "ko": {
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/ko/conservative/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 245.1412,
+              "synthesis_ms_p90": 254.3304,
+              "rtf_median": 0.04531908530130087,
+              "stage_ms_median": {
+                "duration_predictor": 3.48775,
+                "text_encoder": 4.3588000000000005,
+                "vector_estimator": 226.31740000000002,
+                "vocoder": 10.63395
+              }
+            },
+            "duration_seconds": 5.409226417541504,
+            "bucket_length": 96,
+            "spectral_convergence": 0.04758574289013576,
+            "flow_relative_l2": 0.015085607334599365,
+            "waveform_cosine": 0.9312208244917094,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 0.9999999999999998,
+              "sqnr_db": 327.3460896213222
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0020399093627929688,
+                "rmse": 0.0020399093627929688,
+                "relative_l2": 0.0003592877737175703,
+                "cosine": 1.0,
+                "sqnr_db": 68.89115122492102
+              },
+              "text_encoder": {
+                "max_error": 0.008049249649047852,
+                "rmse": 0.000407876771303039,
+                "relative_l2": 0.0019498728405447326,
+                "cosine": 0.9999981242536948,
+                "sqnr_db": 54.199874197882174
+              },
+              "vocoder": {
+                "max_error": 0.016302205622196198,
+                "rmse": 0.001355424495282051,
+                "relative_l2": 0.028194266617842922,
+                "cosine": 0.999629996567994,
+                "sqnr_db": 30.99678395374617
+              }
+            },
+            "warm_p90_rtf": 0.047017887654921514
+          },
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/ko/fast/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 139.24869999999999,
+              "synthesis_ms_p90": 143.23566,
+              "rtf_median": 0.0257428115445109,
+              "stage_ms_median": {
+                "duration_predictor": 3.49045,
+                "text_encoder": 4.5192,
+                "vector_estimator": 115.09625,
+                "vocoder": 15.8256
+              }
+            },
+            "duration_seconds": 5.409226417541504,
+            "bucket_length": 96,
+            "spectral_convergence": 0.10009877920600332,
+            "flow_relative_l2": 0.04429787200947807,
+            "waveform_cosine": 0.7212896714574409,
+            "numerical_gates_pass": false,
+            "latency_reduction_percent": 43.19653326327848,
+            "waveform_vs_baseline": {
+              "max_error": 0.45361328125,
+              "rmse": 0.03915109341064899,
+              "relative_l2": 0.8207775777829599,
+              "cosine": 0.6632507204572168,
+              "sqnr_db": 1.7154903248143274
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0020399093627929688,
+                "rmse": 0.0020399093627929688,
+                "relative_l2": 0.0003592877737175703,
+                "cosine": 1.0,
+                "sqnr_db": 68.89115122492102
+              },
+              "text_encoder": {
+                "max_error": 0.008049249649047852,
+                "rmse": 0.000407876771303039,
+                "relative_l2": 0.0019498728405447326,
+                "cosine": 0.9999981242536948,
+                "sqnr_db": 54.199874197882174
+              },
+              "vocoder": {
+                "max_error": 0.018644042313098907,
+                "rmse": 0.0011817797378590354,
+                "relative_l2": 0.024576857161102895,
+                "cosine": 0.9997258725489796,
+                "sqnr_db": 32.189473092016726
+              }
+            },
+            "warm_p90_rtf": 0.026479878811414344
+          }
+        },
+        "es": {
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/es/fast/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 117.562,
+              "synthesis_ms_p90": 120.40992,
+              "rtf_median": 0.03351077961942232,
+              "stage_ms_median": {
+                "duration_predictor": 3.55375,
+                "text_encoder": 5.6206499999999995,
+                "vector_estimator": 99.83975,
+                "vocoder": 8.3173
+              }
+            },
+            "duration_seconds": 3.5081846714019775,
+            "bucket_length": 64,
+            "spectral_convergence": 0.08943054176539729,
+            "flow_relative_l2": 0.036316902414636955,
+            "waveform_cosine": 0.9572259297073352,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 18.79787535312929,
+            "waveform_vs_baseline": {
+              "max_error": 0.4580078125,
+              "rmse": 0.03596376591756284,
+              "relative_l2": 0.6596122544204848,
+              "cosine": 0.7820797060668923,
+              "sqnr_db": 3.614225690697185
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0022056102752685547,
+                "rmse": 0.0022056102752685547,
+                "relative_l2": 0.0005991246213536927,
+                "cosine": 1.0,
+                "sqnr_db": 64.44965664947705
+              },
+              "text_encoder": {
+                "max_error": 0.0032863616943359375,
+                "rmse": 0.0003254509066312388,
+                "relative_l2": 0.0016960444675013493,
+                "cosine": 0.9999985697968862,
+                "sqnr_db": 55.411255308834996
+              },
+              "vocoder": {
+                "max_error": 0.03625600039958954,
+                "rmse": 0.0017163017461334933,
+                "relative_l2": 0.031161018147776037,
+                "cosine": 0.9995792450037229,
+                "sqnr_db": 30.127767214638347
+              }
+            },
+            "warm_p90_rtf": 0.0343225717225087
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/es/conservative/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 144.777,
+              "synthesis_ms_p90": 150.3698,
+              "rtf_median": 0.04126835321754569,
+              "stage_ms_median": {
+                "duration_predictor": 5.288600000000001,
+                "text_encoder": 4.4376,
+                "vector_estimator": 130.6418,
+                "vocoder": 4.17545
+              }
+            },
+            "duration_seconds": 3.5081846714019775,
+            "bucket_length": 64,
+            "spectral_convergence": 0.14397419573699996,
+            "flow_relative_l2": 0.0792107126018262,
+            "waveform_cosine": 0.8357815274874332,
+            "numerical_gates_pass": false,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 0.9999999999999999,
+              "sqnr_db": 326.62671279693495
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0022056102752685547,
+                "rmse": 0.0022056102752685547,
+                "relative_l2": 0.0005991246213536927,
+                "cosine": 1.0,
+                "sqnr_db": 64.44965664947705
+              },
+              "text_encoder": {
+                "max_error": 0.0032863616943359375,
+                "rmse": 0.0003254509066312388,
+                "relative_l2": 0.0016960444675013493,
+                "cosine": 0.9999985697968862,
+                "sqnr_db": 55.411255308834996
+              },
+              "vocoder": {
+                "max_error": 0.08018989861011505,
+                "rmse": 0.002306527657058944,
+                "relative_l2": 0.04179142280544648,
+                "cosine": 0.9991903536275109,
+                "sqnr_db": 27.57825685756036
+              }
+            },
+            "warm_p90_rtf": 0.04286256684996792
+          }
+        },
+        "fr": {
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/fr/conservative/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 151.98930000000001,
+              "synthesis_ms_p90": 165.95434,
+              "rtf_median": 0.04580125638022828,
+              "stage_ms_median": {
+                "duration_predictor": 3.4989,
+                "text_encoder": 4.20515,
+                "vector_estimator": 136.4815,
+                "vocoder": 7.45845
+              }
+            },
+            "duration_seconds": 3.3184525966644287,
+            "bucket_length": 64,
+            "spectral_convergence": 0.026291143139093434,
+            "flow_relative_l2": 0.006645042461084928,
+            "waveform_cosine": 0.996631870430023,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0,
+              "sqnr_db": 324.36590133782795
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0054857730865478516,
+                "rmse": 0.0054857730865478516,
+                "relative_l2": 0.001576874895615734,
+                "cosine": 1.0,
+                "sqnr_db": 56.044055217746156
+              },
+              "text_encoder": {
+                "max_error": 0.003542184829711914,
+                "rmse": 0.00038159536682782976,
+                "relative_l2": 0.0019233688823670186,
+                "cosine": 0.9999981570193653,
+                "sqnr_db": 54.31874829117646
+              },
+              "vocoder": {
+                "max_error": 0.009834758937358856,
+                "rmse": 0.0009678357303740226,
+                "relative_l2": 0.022135353740530155,
+                "cosine": 0.9998212325666015,
+                "sqnr_db": 33.09827066517976
+              }
+            },
+            "warm_p90_rtf": 0.0500095557088296
+          },
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/fr/fast/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 104.37655000000001,
+              "synthesis_ms_p90": 110.07987,
+              "rtf_median": 0.03145337945917059,
+              "stage_ms_median": {
+                "duration_predictor": 5.3153500000000005,
+                "text_encoder": 4.8009,
+                "vector_estimator": 81.4154,
+                "vocoder": 12.414349999999999
+              }
+            },
+            "duration_seconds": 3.3184525966644287,
+            "bucket_length": 64,
+            "spectral_convergence": 0.05074309970078356,
+            "flow_relative_l2": 0.017133293662077848,
+            "waveform_cosine": 0.9912797194612721,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 31.326382844055466,
+            "waveform_vs_baseline": {
+              "max_error": 0.124908447265625,
+              "rmse": 0.0075690614653930845,
+              "relative_l2": 0.1751591955551167,
+              "cosine": 0.984675258287612,
+              "sqnr_db": 15.131341160757877
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0054857730865478516,
+                "rmse": 0.0054857730865478516,
+                "relative_l2": 0.001576874895615734,
+                "cosine": 1.0,
+                "sqnr_db": 56.044055217746156
+              },
+              "text_encoder": {
+                "max_error": 0.003542184829711914,
+                "rmse": 0.00038159536682782976,
+                "relative_l2": 0.0019233688823670186,
+                "cosine": 0.9999981570193653,
+                "sqnr_db": 54.31874829117646
+              },
+              "vocoder": {
+                "max_error": 0.009644217789173126,
+                "rmse": 0.0009822871581301404,
+                "relative_l2": 0.022462752561503724,
+                "cosine": 0.9998044434329193,
+                "sqnr_db": 32.97074053671268
+              }
+            },
+            "warm_p90_rtf": 0.033172048354901236
+          }
+        },
+        "pt": {
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/pt/fast/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 98.9409,
+              "synthesis_ms_p90": 104.99874,
+              "rtf_median": 0.0228482063628733,
+              "stage_ms_median": {
+                "duration_predictor": 5.92755,
+                "text_encoder": 5.56345,
+                "vector_estimator": 80.42495,
+                "vocoder": 6.77015
+              }
+            },
+            "duration_seconds": 4.330357551574707,
+            "bucket_length": 64,
+            "spectral_convergence": 0.0299365777697704,
+            "flow_relative_l2": 0.01304460501932285,
+            "waveform_cosine": 0.9961557624757336,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 36.049161678968936,
+            "waveform_vs_baseline": {
+              "max_error": 0.149658203125,
+              "rmse": 0.007295673428924415,
+              "relative_l2": 0.13124549868733001,
+              "cosine": 0.991369182336444,
+              "sqnr_db": 17.638311652348975
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.005621433258056641,
+                "rmse": 0.005621433258056641,
+                "relative_l2": 0.0012378593653579349,
+                "cosine": 1.0,
+                "sqnr_db": 58.14657386428874
+              },
+              "text_encoder": {
+                "max_error": 0.0035817623138427734,
+                "rmse": 0.0003854951678757093,
+                "relative_l2": 0.00198658525649325,
+                "cosine": 0.9999980365855394,
+                "sqnr_db": 54.0378558396575
+              },
+              "vocoder": {
+                "max_error": 0.01214464008808136,
+                "rmse": 0.001244564681697767,
+                "relative_l2": 0.02219519798698593,
+                "cosine": 0.9998130672312562,
+                "sqnr_db": 33.074819532013585
+              }
+            },
+            "warm_p90_rtf": 0.024247129422792783
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/pt/conservative/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 154.714,
+              "synthesis_ms_p90": 156.75807999999998,
+              "rtf_median": 0.03572776677011812,
+              "stage_ms_median": {
+                "duration_predictor": 4.299049999999999,
+                "text_encoder": 4.38735,
+                "vector_estimator": 141.01690000000002,
+                "vocoder": 4.7133
+              }
+            },
+            "duration_seconds": 4.330357551574707,
+            "bucket_length": 64,
+            "spectral_convergence": 0.041384361921446004,
+            "flow_relative_l2": 0.013651824900400183,
+            "waveform_cosine": 0.992089964861185,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0,
+              "sqnr_db": 327.70922536484295
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.005621433258056641,
+                "rmse": 0.005621433258056641,
+                "relative_l2": 0.0012378593653579349,
+                "cosine": 1.0,
+                "sqnr_db": 58.14657386428874
+              },
+              "text_encoder": {
+                "max_error": 0.0035817623138427734,
+                "rmse": 0.0003854951678757093,
+                "relative_l2": 0.00198658525649325,
+                "cosine": 0.9999980365855394,
+                "sqnr_db": 54.0378558396575
+              },
+              "vocoder": {
+                "max_error": 0.009559571743011475,
+                "rmse": 0.0011893345546324715,
+                "relative_l2": 0.02116496005252938,
+                "cosine": 0.9998322822753298,
+                "sqnr_db": 33.48765093782959
+              }
+            },
+            "warm_p90_rtf": 0.036199800624545635
+          }
+        },
+        "en-long": {
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/en-long/conservative/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 266.4885,
+              "synthesis_ms_p90": 268.87002,
+              "rtf_median": 0.035027924671873406,
+              "stage_ms_median": {
+                "duration_predictor": 3.4913,
+                "text_encoder": 6.022399999999999,
+                "vector_estimator": 246.5152,
+                "vocoder": 9.85285
+              }
+            },
+            "duration_seconds": 7.607887268066406,
+            "bucket_length": 128,
+            "spectral_convergence": 0.05904123513296538,
+            "flow_relative_l2": 0.017391877509204096,
+            "waveform_cosine": 0.9458363765798982,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 0.9999999999999998,
+              "sqnr_db": 328.0207385453477
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0012979507446289062,
+                "rmse": 0.0012979507446289062,
+                "relative_l2": 0.00016250825824938367,
+                "cosine": 1.0,
+                "sqnr_db": 75.7824912880397
+              },
+              "text_encoder": {
+                "max_error": 0.01009070873260498,
+                "rmse": 0.0005578881220870541,
+                "relative_l2": 0.0023867700871636325,
+                "cosine": 0.9999972265874112,
+                "sqnr_db": 52.44378827411852
+              },
+              "vocoder": {
+                "max_error": 0.0242256261408329,
+                "rmse": 0.0011444369982412357,
+                "relative_l2": 0.02602638638834765,
+                "cosine": 0.9997234576332681,
+                "sqnr_db": 31.69172253911713
+              }
+            },
+            "warm_p90_rtf": 0.03534095742040813
+          },
+          "fast": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/seed43-8steps/en-long/fast/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 156.4257,
+              "synthesis_ms_p90": 161.91289999999998,
+              "rtf_median": 0.020560990948371386,
+              "stage_ms_median": {
+                "duration_predictor": 8.06945,
+                "text_encoder": 4.2933,
+                "vector_estimator": 132.28640000000001,
+                "vocoder": 11.44585
+              }
+            },
+            "duration_seconds": 7.607887268066406,
+            "bucket_length": 128,
+            "spectral_convergence": 0.05058705209201562,
+            "flow_relative_l2": 0.033689267208686584,
+            "waveform_cosine": 0.9701118032324035,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 41.30114432705351,
+            "waveform_vs_baseline": {
+              "max_error": 0.3380126953125,
+              "rmse": 0.01910036523387914,
+              "relative_l2": 0.43939543177118584,
+              "cosine": 0.9039802293164678,
+              "sqnr_db": 7.142889251763936
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": false,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0012979507446289062,
+                "rmse": 0.0012979507446289062,
+                "relative_l2": 0.00016250825824938367,
+                "cosine": 1.0,
+                "sqnr_db": 75.7824912880397
+              },
+              "text_encoder": {
+                "max_error": 0.01009070873260498,
+                "rmse": 0.0005578881220870541,
+                "relative_l2": 0.0023867700871636325,
+                "cosine": 0.9999972265874112,
+                "sqnr_db": 52.44378827411852
+              },
+              "vocoder": {
+                "max_error": 0.020747365429997444,
+                "rmse": 0.0010446045573259401,
+                "relative_l2": 0.023634313207590355,
+                "cosine": 0.9997828116303812,
+                "sqnr_db": 32.52914026788766
+              }
+            },
+            "warm_p90_rtf": 0.021282242269758448
+          }
+        }
+      },
+      "completed_utc": "2026-10-15T23:42:04.122761+00:00",
+      "numerical_pass_by_variant": {
+        "conservative": false,
+        "fast": false
+      }
+    },
+    "final-5steps": {
+      "started_utc": "2026-10-15T23:42:04.464614+00:00",
+      "steps": 5,
+      "seed": 42,
+      "requests_per_case": 10,
+      "warm_requests_per_case": 9,
+      "noise": "Identical seed at base capacity 128, cropped per channel by native runner",
+      "timing": "Warm native synthesis; excludes loading, Python preprocessing and file I/O; profile collection disabled",
+      "limitations": "Small held-out corpus, one seed; numerical checks do not establish perceptual quality or WER",
+      "numerical_gates": {
+        "stage_relative_l2_max": 0.05,
+        "final_latent_relative_l2_max": 0.05,
+        "spectral_convergence_max": 0.1
+      },
+      "variants": {
+        "baseline": "artifacts/qnn",
+        "conservative": "artifacts/optimized"
+      },
+      "cases": {
+        "en-main": {
+          "baseline": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-5steps/en-main/baseline/report.json",
+            "warm": {
+              "count": 9,
+              "synthesis_ms_median": 241.3749,
+              "synthesis_ms_p90": 269.43332,
+              "rtf_median": 0.04183208694080397,
+              "stage_ms_median": {
+                "duration_predictor": 3.4624,
+                "text_encoder": 4.185,
+                "vector_estimator": 143.8707,
+                "vocoder": 91.6672
+              }
+            },
+            "duration_seconds": 5.770089626312256,
+            "bucket_length": 128,
+            "spectral_convergence": 0.08911104333250457,
+            "flow_relative_l2": 0.04384137061458266,
+            "waveform_cosine": 0.9129148553218257,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0,
+              "sqnr_db": 327.1115809703996
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0002002716064453125,
+                "rmse": 0.0002002716064453125,
+                "relative_l2": 3.3056883340369726e-05,
+                "cosine": 1.0,
+                "sqnr_db": 89.6147618972544
+              },
+              "text_encoder": {
+                "max_error": 0.007447242736816406,
+                "rmse": 0.000510217271262454,
+                "relative_l2": 0.002455966959111808,
+                "cosine": 0.99999699821403,
+                "sqnr_db": 52.19554960380911
+              },
+              "vocoder": {
+                "max_error": 0.009233050048351288,
+                "rmse": 0.00040321254544310476,
+                "relative_l2": 0.00897097681636038,
+                "cosine": 0.9999597826403113,
+                "sqnr_db": 40.94320531334756
+              }
+            },
+            "warm_p90_rtf": 0.04669482407541017
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-5steps/en-main/conservative/report.json",
+            "warm": {
+              "count": 9,
+              "synthesis_ms_median": 122.7183,
+              "synthesis_ms_p90": 123.30542,
+              "rtf_median": 0.021268005061121368,
+              "stage_ms_median": {
+                "duration_predictor": 3.4262,
+                "text_encoder": 4.025,
+                "vector_estimator": 109.4122,
+                "vocoder": 5.5768
+              }
+            },
+            "duration_seconds": 5.770089626312256,
+            "bucket_length": 96,
+            "spectral_convergence": 0.09042838141557037,
+            "flow_relative_l2": 0.04384137061458266,
+            "waveform_cosine": 0.9134997260547981,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 49.158632484156385,
+            "waveform_vs_baseline": {
+              "max_error": 0.027435302734375,
+              "rmse": 0.0011588013910951366,
+              "relative_l2": 0.025777436208895804,
+              "cosine": 0.9997334921950048,
+              "sqnr_db": 31.775205584259105
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0002002716064453125,
+                "rmse": 0.0002002716064453125,
+                "relative_l2": 3.3056883340369726e-05,
+                "cosine": 1.0,
+                "sqnr_db": 89.6147618972544
+              },
+              "text_encoder": {
+                "max_error": 0.007447242736816406,
+                "rmse": 0.000510217271262454,
+                "relative_l2": 0.002455966959111808,
+                "cosine": 0.99999699821403,
+                "sqnr_db": 52.19554960380911
+              },
+              "vocoder": {
+                "max_error": 0.01841617375612259,
+                "rmse": 0.0011351102586895298,
+                "relative_l2": 0.02525478914235194,
+                "cosine": 0.9997450188575868,
+                "sqnr_db": 31.95312506308435
+              }
+            },
+            "warm_p90_rtf": 0.02136975818152173
+          }
+        },
+        "en-short": {
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-5steps/en-short/conservative/report.json",
+            "warm": {
+              "count": 9,
+              "synthesis_ms_median": 76.2483,
+              "synthesis_ms_p90": 83.47222,
+              "rtf_median": 0.02458973250274999,
+              "stage_ms_median": {
+                "duration_predictor": 3.3808,
+                "text_encoder": 4.0824,
+                "vector_estimator": 64.88850000000001,
+                "vocoder": 3.8392
+              }
+            },
+            "duration_seconds": 3.100818634033203,
+            "bucket_length": 64,
+            "spectral_convergence": 0.03309909213817688,
+            "flow_relative_l2": 0.018608923358292773,
+            "waveform_cosine": 0.980356501845861,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 71.95012934497585,
+            "waveform_vs_baseline": {
+              "max_error": 0.0079345703125,
+              "rmse": 0.0009793859913041752,
+              "relative_l2": 0.019240222070211276,
+              "cosine": 0.9998639402647589,
+              "sqnr_db": 34.315798393042314
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0008726119995117188,
+                "rmse": 0.0008726119995117188,
+                "relative_l2": 0.00026794099207275347,
+                "cosine": 1.0,
+                "sqnr_db": 71.4392167790397
+              },
+              "text_encoder": {
+                "max_error": 0.004741281270980835,
+                "rmse": 0.0003684657979034488,
+                "relative_l2": 0.0020249893709854082,
+                "cosine": 0.9999979527052479,
+                "sqnr_db": 53.87154504043811
+              },
+              "vocoder": {
+                "max_error": 0.010263584554195404,
+                "rmse": 0.001164506685101955,
+                "relative_l2": 0.022899601175707347,
+                "cosine": 0.999776822113084,
+                "sqnr_db": 32.80344162717416
+              }
+            },
+            "warm_p90_rtf": 0.02691941382312597
+          },
+          "baseline": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/final-5steps/en-short/baseline/report.json",
+            "warm": {
+              "count": 9,
+              "synthesis_ms_median": 271.8312,
+              "synthesis_ms_p90": 302.8025,
+              "rtf_median": 0.08766433473141741,
+              "stage_ms_median": {
+                "duration_predictor": 4.065,
+                "text_encoder": 4.5096,
+                "vector_estimator": 157.5574,
+                "vocoder": 104.5554
+              }
+            },
+            "duration_seconds": 3.100818634033203,
+            "bucket_length": 128,
+            "spectral_convergence": 0.03251487276522892,
+            "flow_relative_l2": 0.018608923358292773,
+            "waveform_cosine": 0.9806845722936052,
+            "numerical_gates_pass": true,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 1.0,
+              "sqnr_db": 325.49402246359995
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0008726119995117188,
+                "rmse": 0.0008726119995117188,
+                "relative_l2": 0.00026794099207275347,
+                "cosine": 1.0,
+                "sqnr_db": 71.4392167790397
+              },
+              "text_encoder": {
+                "max_error": 0.004741281270980835,
+                "rmse": 0.0003684657979034488,
+                "relative_l2": 0.0020249893709854082,
+                "cosine": 0.9999979527052479,
+                "sqnr_db": 53.87154504043811
+              },
+              "vocoder": {
+                "max_error": 0.007293075323104858,
+                "rmse": 0.000631429759989789,
+                "relative_l2": 0.012416836982754477,
+                "cosine": 0.999923476890444,
+                "sqnr_db": 38.119780411504614
+              }
+            },
+            "warm_p90_rtf": 0.09765243819053934
+          }
+        }
+      },
+      "completed_utc": "2026-10-15T23:42:29.415076+00:00",
+      "numerical_pass_by_variant": {
+        "baseline": true,
+        "conservative": true
+      }
+    },
+    "spanish-seed43-baseline": {
+      "started_utc": "2026-10-15T23:43:12.294726+00:00",
+      "steps": 8,
+      "seed": 43,
+      "requests_per_case": 3,
+      "warm_requests_per_case": 2,
+      "noise": "Identical seed at base capacity 128, cropped per channel by native runner",
+      "timing": "Warm native synthesis; excludes loading, Python preprocessing and file I/O; profile collection disabled",
+      "limitations": "Small held-out corpus, one seed; numerical checks do not establish perceptual quality or WER",
+      "numerical_gates": {
+        "stage_relative_l2_max": 0.05,
+        "final_latent_relative_l2_max": 0.05,
+        "spectral_convergence_max": 0.1
+      },
+      "variants": {
+        "baseline": "artifacts/qnn",
+        "conservative": "artifacts/optimized"
+      },
+      "cases": {
+        "es": {
+          "baseline": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/spanish-seed43-baseline/es/baseline/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 390.95050000000003,
+              "synthesis_ms_p90": 420.01018,
+              "rtf_median": 0.11143954719724886,
+              "stage_ms_median": {
+                "duration_predictor": 3.448,
+                "text_encoder": 4.7707999999999995,
+                "vector_estimator": 274.70045,
+                "vocoder": 107.47905
+              }
+            },
+            "duration_seconds": 3.5081846714019775,
+            "bucket_length": 128,
+            "spectral_convergence": 0.14557284661186998,
+            "flow_relative_l2": 0.0792107126018262,
+            "waveform_cosine": 0.8340797526417936,
+            "numerical_gates_pass": false,
+            "latency_reduction_percent": 0.0,
+            "waveform_vs_baseline": {
+              "max_error": 0.0,
+              "rmse": 0.0,
+              "relative_l2": 0.0,
+              "cosine": 0.9999999999999999,
+              "sqnr_db": 326.7519848048677
+            },
+            "bit_exact_with_baseline": true,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0022056102752685547,
+                "rmse": 0.0022056102752685547,
+                "relative_l2": 0.0005991246213536927,
+                "cosine": 1.0,
+                "sqnr_db": 64.44965664947705
+              },
+              "text_encoder": {
+                "max_error": 0.0032863616943359375,
+                "rmse": 0.0003254509066312388,
+                "relative_l2": 0.0016960444675013493,
+                "cosine": 0.9999985697968862,
+                "sqnr_db": 55.411255308834996
+              },
+              "vocoder": {
+                "max_error": 0.04162588715553284,
+                "rmse": 0.0012434883678633735,
+                "relative_l2": 0.022530468245629532,
+                "cosine": 0.999749241168651,
+                "sqnr_db": 32.944595646766246
+              }
+            },
+            "warm_p90_rtf": 0.11972293916675461
+          },
+          "conservative": {
+            "exit_code": 0,
+            "report": "artifacts/optimization/spanish-seed43-baseline/es/conservative/report.json",
+            "warm": {
+              "count": 2,
+              "synthesis_ms_median": 148.6808,
+              "synthesis_ms_p90": 158.82896000000002,
+              "rtf_median": 0.04238112249229689,
+              "stage_ms_median": {
+                "duration_predictor": 3.4539999999999997,
+                "text_encoder": 4.16225,
+                "vector_estimator": 135.348,
+                "vocoder": 5.4506
+              }
+            },
+            "duration_seconds": 3.5081846714019775,
+            "bucket_length": 64,
+            "spectral_convergence": 0.14397419573699996,
+            "flow_relative_l2": 0.0792107126018262,
+            "waveform_cosine": 0.8357815274874332,
+            "numerical_gates_pass": false,
+            "latency_reduction_percent": 61.96940533392335,
+            "waveform_vs_baseline": {
+              "max_error": 0.04888916015625,
+              "rmse": 0.0017680558667085733,
+              "relative_l2": 0.03196361834869986,
+              "cosine": 0.9995857483059967,
+              "sqnr_db": 29.90688127056138
+            },
+            "bit_exact_with_baseline": false,
+            "flow_bit_exact_with_first_variant": true,
+            "real_input_stages": {
+              "duration_predictor": {
+                "max_error": 0.0022056102752685547,
+                "rmse": 0.0022056102752685547,
+                "relative_l2": 0.0005991246213536927,
+                "cosine": 1.0,
+                "sqnr_db": 64.44965664947705
+              },
+              "text_encoder": {
+                "max_error": 0.0032863616943359375,
+                "rmse": 0.0003254509066312388,
+                "relative_l2": 0.0016960444675013493,
+                "cosine": 0.9999985697968862,
+                "sqnr_db": 55.411255308834996
+              },
+              "vocoder": {
+                "max_error": 0.08018989861011505,
+                "rmse": 0.002306527657058944,
+                "relative_l2": 0.04179142280544648,
+                "cosine": 0.9991903536275109,
+                "sqnr_db": 27.57825685756036
+              }
+            },
+            "warm_p90_rtf": 0.04527383101999791
+          }
+        }
+      },
+      "completed_utc": "2026-10-15T23:43:24.566147+00:00",
+      "numerical_pass_by_variant": {
+        "baseline": false,
+        "conservative": false
+      }
+    }
+  },
+  "programs": [
+    {
+      "path": "artifacts/optimization/a16w8-l96/vector_estimator.pte",
+      "sha256": "b1ac98dbb492a352529d76f030193be5834ac9a7e5e10151d5e6f0b1feb18db6",
+      "metadata": {
+        "component": "vector_estimator",
+        "model_sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "a16w8",
+        "gelu": "exact",
+        "conv_layout": "original",
+        "text_length": 128,
+        "latent_length": 96,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 73,
+        "reference_max_error": 3.910064697265625e-05,
+        "reference_rmse": 2.7148588545978342e-06,
+        "reference_relative_l2": 1.923263539382085e-06,
+        "inputs": [
+          {
+            "name": "noisy_latent",
+            "shape": [
+              1,
+              144,
+              96
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_emb",
+            "shape": [
+              1,
+              256,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "style_ttl",
+            "shape": [
+              1,
+              50,
+              256
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "latent_mask",
+            "shape": [
+              1,
+              1,
+              96
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "current_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "total_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            144,
+            96
+          ],
+          "dtype": "float32"
+        },
+        "calibration": {
+          "manifest": {
+            "source": "original unpadded FP32 ONNX",
+            "cases": [
+              {
+                "id": "cal-en-m2",
+                "lang": "en",
+                "voice": "M2",
+                "text": "Please close the window before the rain begins.",
+                "duration_seconds": 3.024558339800153,
+                "latent_length": 44
+              },
+              {
+                "id": "cal-en-f2",
+                "lang": "en",
+                "voice": "F2",
+                "text": "Our train leaves at nine tomorrow morning.",
+                "duration_seconds": 2.7245923451014926,
+                "latent_length": 40
+              },
+              {
+                "id": "cal-en-m3",
+                "lang": "en",
+                "voice": "M3",
+                "text": "I found three green apples beside the kitchen door.",
+                "duration_seconds": 2.8222590401059104,
+                "latent_length": 41
+              },
+              {
+                "id": "cal-en-f3",
+                "lang": "en",
+                "voice": "F3",
+                "text": "Take a deep breath, and tell me what happened.",
+                "duration_seconds": 3.3058852241152805,
+                "latent_length": 48
+              },
+              {
+                "id": "cal-ko-m4",
+                "lang": "ko",
+                "voice": "M4",
+                "text": "오늘은 날씨가 좋아서 공원에 산책하러 갑니다.",
+                "duration_seconds": 3.931269872756231,
+                "latent_length": 57
+              },
+              {
+                "id": "cal-es-f4",
+                "lang": "es",
+                "voice": "F4",
+                "text": "La biblioteca abre temprano por la mañana.",
+                "duration_seconds": 3.07315917242141,
+                "latent_length": 45
+              },
+              {
+                "id": "cal-fr-m5",
+                "lang": "fr",
+                "voice": "M5",
+                "text": "Le jardin est calme et les oiseaux chantent.",
+                "duration_seconds": 3.368276868547712,
+                "latent_length": 49
+              },
+              {
+                "id": "cal-pt-f5",
+                "lang": "pt",
+                "voice": "F5",
+                "text": "Vamos caminhar pela praia depois do almoço.",
+                "duration_seconds": 3.395696367536272,
+                "latent_length": 49
+              }
+            ],
+            "text_length": 128,
+            "latent_length": 96,
+            "steps": [
+              5,
+              8
+            ],
+            "speed": 1.05,
+            "seed": 193,
+            "asset_manifest": {
+              "repository": "supertone-oss-archive/supertonic-3",
+              "revision": "aafc6e32416a594460b32413efc49d7fe4ce6d46",
+              "files": [
+                {
+                  "path": "LICENSE",
+                  "size": 15007,
+                  "sha256": "0d944a9110fed9a9602d60e0423a272903e7bd21ab060490774efc77c2275e9f"
+                },
+                {
+                  "path": "config.json",
+                  "size": 174,
+                  "sha256": "4099082b107a9d4029849ac76b89eca65e03732660969c2babe5bf308c7357f2"
+                },
+                {
+                  "path": "onnx/duration_predictor.onnx",
+                  "size": 3700147,
+                  "sha256": "c3eb91414d5ff8a7a239b7fe9e34e7e2bf8a8140d8375ffb14718b1c639325db"
+                },
+                {
+                  "path": "onnx/text_encoder.onnx",
+                  "size": 36416150,
+                  "sha256": "c7befd5ea8c3119769e8a6c1486c4edc6a3bc8365c67621c881bbb774b9902ff"
+                },
+                {
+                  "path": "onnx/tts.json",
+                  "size": 8253,
+                  "sha256": "42078d3aef1cd43ab43021f3c54f47d2d75ceb4e75f627f118890128b06a0d09"
+                },
+                {
+                  "path": "onnx/unicode_indexer.json",
+                  "size": 277676,
+                  "sha256": "9bf7346e43883a81f8645c81224f786d43c5b57f3641f6e7671a7d6c493cb24f"
+                },
+                {
+                  "path": "onnx/vector_estimator.onnx",
+                  "size": 256534781,
+                  "sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c"
+                },
+                {
+                  "path": "onnx/vocoder.onnx",
+                  "size": 101424195,
+                  "sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba"
+                },
+                {
+                  "path": "voice_styles/F1.json",
+                  "size": 292046,
+                  "sha256": "bbdec6ee00231c2c742ad05483df5334cab3b52fda3ba38e6a07059c4563dbc2"
+                },
+                {
+                  "path": "voice_styles/F2.json",
+                  "size": 292423,
+                  "sha256": "7c722c6a72707b1a77f035d67f0d1351ba187738e06f7683e8c72b1df3477fc6"
+                },
+                {
+                  "path": "voice_styles/F3.json",
+                  "size": 290794,
+                  "sha256": "12f6ef2573baa2defa1128069cb59f203e3ab67c92af77b42df8a0e3a2f7c6ab"
+                },
+                {
+                  "path": "voice_styles/F4.json",
+                  "size": 291808,
+                  "sha256": "c2fa764c1225a76dfc3e2c73e8aa4f70d9ee48793860eb34c295fff01c2e032b"
+                },
+                {
+                  "path": "voice_styles/F5.json",
+                  "size": 291479,
+                  "sha256": "45966e73316415626cf41a7d1c6f3b4c70dbc1ba2bee5c1978ef0ce33244fc8d"
+                },
+                {
+                  "path": "voice_styles/M1.json",
+                  "size": 291748,
+                  "sha256": "e35604687f5d23694b8e91593a93eec0e4eca6c0b02bb8ed69139ab2ea6b0a5b"
+                },
+                {
+                  "path": "voice_styles/M2.json",
+                  "size": 292055,
+                  "sha256": "b76cbf62bac707c710cf0ae5aba5e31eea1a6339a9734bfae33ab98499534a50"
+                },
+                {
+                  "path": "voice_styles/M3.json",
+                  "size": 290198,
+                  "sha256": "ea1ac35ccb91b0d7ecad533a2fbd0eec10c91513d8951e3b25fbba99954e159b"
+                },
+                {
+                  "path": "voice_styles/M4.json",
+                  "size": 291522,
+                  "sha256": "ca8eefad4fcd989c9379032ff3e50738adc547eeb5e221b82593a6d7b3bac303"
+                },
+                {
+                  "path": "voice_styles/M5.json",
+                  "size": 291469,
+                  "sha256": "dd22b92740314321f8ae11c5e87f8dd60d060f15dd3a632b5adf77f471f77af2"
+                }
+              ]
+            }
+          },
+          "samples": 104,
+          "observer": "MinMaxObserver",
+          "weights": "per-channel 8-bit",
+          "activations": "16-bit"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 229.62339449999854,
+        "pte_bytes": 71340576
+      }
+    },
+    {
+      "path": "artifacts/optimization/a16w8-l96/vocoder.pte",
+      "sha256": "465e72b0bd862165e14ddf93fad3dfb33b545dc69461005ba63c730d2211c707",
+      "metadata": {
+        "component": "vocoder",
+        "model_sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "a16w8",
+        "gelu": "exact",
+        "conv_layout": "original",
+        "text_length": 128,
+        "latent_length": 96,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 73,
+        "reference_max_error": 9.238719940185547e-07,
+        "reference_rmse": 1.2967438101626817e-07,
+        "reference_relative_l2": 1.4051210094933691e-06,
+        "inputs": [
+          {
+            "name": "latent",
+            "shape": [
+              1,
+              144,
+              96
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            294912
+          ],
+          "dtype": "float32"
+        },
+        "calibration": {
+          "manifest": {
+            "source": "original unpadded FP32 ONNX",
+            "cases": [
+              {
+                "id": "cal-en-m2",
+                "lang": "en",
+                "voice": "M2",
+                "text": "Please close the window before the rain begins.",
+                "duration_seconds": 3.024558339800153,
+                "latent_length": 44
+              },
+              {
+                "id": "cal-en-f2",
+                "lang": "en",
+                "voice": "F2",
+                "text": "Our train leaves at nine tomorrow morning.",
+                "duration_seconds": 2.7245923451014926,
+                "latent_length": 40
+              },
+              {
+                "id": "cal-en-m3",
+                "lang": "en",
+                "voice": "M3",
+                "text": "I found three green apples beside the kitchen door.",
+                "duration_seconds": 2.8222590401059104,
+                "latent_length": 41
+              },
+              {
+                "id": "cal-en-f3",
+                "lang": "en",
+                "voice": "F3",
+                "text": "Take a deep breath, and tell me what happened.",
+                "duration_seconds": 3.3058852241152805,
+                "latent_length": 48
+              },
+              {
+                "id": "cal-ko-m4",
+                "lang": "ko",
+                "voice": "M4",
+                "text": "오늘은 날씨가 좋아서 공원에 산책하러 갑니다.",
+                "duration_seconds": 3.931269872756231,
+                "latent_length": 57
+              },
+              {
+                "id": "cal-es-f4",
+                "lang": "es",
+                "voice": "F4",
+                "text": "La biblioteca abre temprano por la mañana.",
+                "duration_seconds": 3.07315917242141,
+                "latent_length": 45
+              },
+              {
+                "id": "cal-fr-m5",
+                "lang": "fr",
+                "voice": "M5",
+                "text": "Le jardin est calme et les oiseaux chantent.",
+                "duration_seconds": 3.368276868547712,
+                "latent_length": 49
+              },
+              {
+                "id": "cal-pt-f5",
+                "lang": "pt",
+                "voice": "F5",
+                "text": "Vamos caminhar pela praia depois do almoço.",
+                "duration_seconds": 3.395696367536272,
+                "latent_length": 49
+              }
+            ],
+            "text_length": 128,
+            "latent_length": 96,
+            "steps": [
+              5,
+              8
+            ],
+            "speed": 1.05,
+            "seed": 193,
+            "asset_manifest": {
+              "repository": "supertone-oss-archive/supertonic-3",
+              "revision": "aafc6e32416a594460b32413efc49d7fe4ce6d46",
+              "files": [
+                {
+                  "path": "LICENSE",
+                  "size": 15007,
+                  "sha256": "0d944a9110fed9a9602d60e0423a272903e7bd21ab060490774efc77c2275e9f"
+                },
+                {
+                  "path": "config.json",
+                  "size": 174,
+                  "sha256": "4099082b107a9d4029849ac76b89eca65e03732660969c2babe5bf308c7357f2"
+                },
+                {
+                  "path": "onnx/duration_predictor.onnx",
+                  "size": 3700147,
+                  "sha256": "c3eb91414d5ff8a7a239b7fe9e34e7e2bf8a8140d8375ffb14718b1c639325db"
+                },
+                {
+                  "path": "onnx/text_encoder.onnx",
+                  "size": 36416150,
+                  "sha256": "c7befd5ea8c3119769e8a6c1486c4edc6a3bc8365c67621c881bbb774b9902ff"
+                },
+                {
+                  "path": "onnx/tts.json",
+                  "size": 8253,
+                  "sha256": "42078d3aef1cd43ab43021f3c54f47d2d75ceb4e75f627f118890128b06a0d09"
+                },
+                {
+                  "path": "onnx/unicode_indexer.json",
+                  "size": 277676,
+                  "sha256": "9bf7346e43883a81f8645c81224f786d43c5b57f3641f6e7671a7d6c493cb24f"
+                },
+                {
+                  "path": "onnx/vector_estimator.onnx",
+                  "size": 256534781,
+                  "sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c"
+                },
+                {
+                  "path": "onnx/vocoder.onnx",
+                  "size": 101424195,
+                  "sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba"
+                },
+                {
+                  "path": "voice_styles/F1.json",
+                  "size": 292046,
+                  "sha256": "bbdec6ee00231c2c742ad05483df5334cab3b52fda3ba38e6a07059c4563dbc2"
+                },
+                {
+                  "path": "voice_styles/F2.json",
+                  "size": 292423,
+                  "sha256": "7c722c6a72707b1a77f035d67f0d1351ba187738e06f7683e8c72b1df3477fc6"
+                },
+                {
+                  "path": "voice_styles/F3.json",
+                  "size": 290794,
+                  "sha256": "12f6ef2573baa2defa1128069cb59f203e3ab67c92af77b42df8a0e3a2f7c6ab"
+                },
+                {
+                  "path": "voice_styles/F4.json",
+                  "size": 291808,
+                  "sha256": "c2fa764c1225a76dfc3e2c73e8aa4f70d9ee48793860eb34c295fff01c2e032b"
+                },
+                {
+                  "path": "voice_styles/F5.json",
+                  "size": 291479,
+                  "sha256": "45966e73316415626cf41a7d1c6f3b4c70dbc1ba2bee5c1978ef0ce33244fc8d"
+                },
+                {
+                  "path": "voice_styles/M1.json",
+                  "size": 291748,
+                  "sha256": "e35604687f5d23694b8e91593a93eec0e4eca6c0b02bb8ed69139ab2ea6b0a5b"
+                },
+                {
+                  "path": "voice_styles/M2.json",
+                  "size": 292055,
+                  "sha256": "b76cbf62bac707c710cf0ae5aba5e31eea1a6339a9734bfae33ab98499534a50"
+                },
+                {
+                  "path": "voice_styles/M3.json",
+                  "size": 290198,
+                  "sha256": "ea1ac35ccb91b0d7ecad533a2fbd0eec10c91513d8951e3b25fbba99954e159b"
+                },
+                {
+                  "path": "voice_styles/M4.json",
+                  "size": 291522,
+                  "sha256": "ca8eefad4fcd989c9379032ff3e50738adc547eeb5e221b82593a6d7b3bac303"
+                },
+                {
+                  "path": "voice_styles/M5.json",
+                  "size": 291469,
+                  "sha256": "dd22b92740314321f8ae11c5e87f8dd60d060f15dd3a632b5adf77f471f77af2"
+                }
+              ]
+            }
+          },
+          "samples": 16,
+          "observer": "MinMaxObserver",
+          "weights": "per-channel 8-bit",
+          "activations": "16-bit"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 32.03203769994434,
+        "pte_bytes": 27674000
+      }
+    },
+    {
+      "path": "artifacts/optimization/fp16-l64/vector_estimator.pte",
+      "sha256": "1997f0ca46908646eb63fd42f34b5bb3ad28b1fffc5e0ea69b1691e9f2909f9c",
+      "metadata": {
+        "component": "vector_estimator",
+        "model_sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "text_length": 128,
+        "latent_length": 64,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 41,
+        "reference_max_error": 1.7642974853515625e-05,
+        "reference_rmse": 1.4393922484334716e-06,
+        "inputs": [
+          {
+            "name": "noisy_latent",
+            "shape": [
+              1,
+              144,
+              64
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_emb",
+            "shape": [
+              1,
+              256,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "style_ttl",
+            "shape": [
+              1,
+              50,
+              256
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "latent_mask",
+            "shape": [
+              1,
+              1,
+              64
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "current_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "total_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            144,
+            64
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 84.7840383000439,
+        "pte_bytes": 140333296
+      }
+    },
+    {
+      "path": "artifacts/optimization/fp16-l64/vocoder.pte",
+      "sha256": "672dc989c5adea14b252d9fc25bcc3ae466e019b4d3716a4a1bf29824b73e679",
+      "metadata": {
+        "component": "vocoder",
+        "model_sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "text_length": 128,
+        "latent_length": 64,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 41,
+        "reference_max_error": 9.834766387939453e-07,
+        "reference_rmse": 1.252117790761583e-07,
+        "inputs": [
+          {
+            "name": "latent",
+            "shape": [
+              1,
+              144,
+              64
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            196608
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 11.894500800059177,
+        "pte_bytes": 52995296
+      }
+    },
+    {
+      "path": "artifacts/optimization/fp16-l96/vector_estimator.pte",
+      "sha256": "961725d15486aad3303db01789d0ca59ea3484969613d06656f6a7bce9b6a85c",
+      "metadata": {
+        "component": "vector_estimator",
+        "model_sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "text_length": 128,
+        "latent_length": 96,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 73,
+        "reference_max_error": 3.910064697265625e-05,
+        "reference_rmse": 2.7148588545978342e-06,
+        "inputs": [
+          {
+            "name": "noisy_latent",
+            "shape": [
+              1,
+              144,
+              96
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_emb",
+            "shape": [
+              1,
+              256,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "style_ttl",
+            "shape": [
+              1,
+              50,
+              256
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "latent_mask",
+            "shape": [
+              1,
+              1,
+              96
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "current_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "total_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            144,
+            96
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 82.27746080001816,
+        "pte_bytes": 141295856
+      }
+    },
+    {
+      "path": "artifacts/optimization/fp16-l96/vocoder.pte",
+      "sha256": "ea1dacb335b53531d486a89757d7feaab4266a2923764b7127573dd1461882d1",
+      "metadata": {
+        "component": "vocoder",
+        "model_sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "text_length": 128,
+        "latent_length": 96,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 73,
+        "reference_max_error": 9.238719940185547e-07,
+        "reference_rmse": 1.2967438101626817e-07,
+        "inputs": [
+          {
+            "name": "latent",
+            "shape": [
+              1,
+              144,
+              96
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            294912
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 13.820895500015467,
+        "pte_bytes": 53347552
+      }
+    },
+    {
+      "path": "artifacts/optimization/layout-l128/vector_estimator.pte",
+      "sha256": "e795056a4c5ff0c974fd87f0a0530ade861b2aa9e43a33710145eaedadc2591e",
+      "metadata": {
+        "component": "vector_estimator",
+        "model_sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "gelu": "exact",
+        "conv_layout": "channel-last",
+        "text_length": 128,
+        "latent_length": 128,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 105,
+        "reference_max_error": 3.910064697265625e-05,
+        "reference_rmse": 2.09900817280651e-06,
+        "reference_relative_l2": 1.4302027859411761e-06,
+        "inputs": [
+          {
+            "name": "noisy_latent",
+            "shape": [
+              1,
+              144,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_emb",
+            "shape": [
+              1,
+              256,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "style_ttl",
+            "shape": [
+              1,
+              50,
+              256
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "latent_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "current_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "total_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            144,
+            128
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 127.42588930006605,
+        "pte_bytes": 136259520
+      }
+    },
+    {
+      "path": "artifacts/optimization/layout-l128/vocoder.pte",
+      "sha256": "ff27bcf84f624a704997c780da19a2a1baa73b9ea82a5868d98b3b9410adf104",
+      "metadata": {
+        "component": "vocoder",
+        "model_sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "gelu": "exact",
+        "conv_layout": "channel-last",
+        "text_length": 128,
+        "latent_length": 128,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 105,
+        "reference_max_error": 1.1920928955078125e-06,
+        "reference_rmse": 1.4037994260098578e-07,
+        "reference_relative_l2": 1.4430145853538311e-06,
+        "inputs": [
+          {
+            "name": "latent",
+            "shape": [
+              1,
+              144,
+              128
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            393216
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 14.441447400022298,
+        "pte_bytes": 53796760
+      }
+    },
+    {
+      "path": "artifacts/optimization/layout-l64/vector_estimator.pte",
+      "sha256": "92ed953c423973759f04782612e03327de3f86e2f13b6adf6a72cf00d1f884a6",
+      "metadata": {
+        "component": "vector_estimator",
+        "model_sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "gelu": "exact",
+        "conv_layout": "channel-last",
+        "text_length": 128,
+        "latent_length": 64,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 41,
+        "reference_max_error": 1.52587890625e-05,
+        "reference_rmse": 1.422225033544072e-06,
+        "reference_relative_l2": 1.095650193804319e-06,
+        "inputs": [
+          {
+            "name": "noisy_latent",
+            "shape": [
+              1,
+              144,
+              64
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_emb",
+            "shape": [
+              1,
+              256,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "style_ttl",
+            "shape": [
+              1,
+              50,
+              256
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "latent_mask",
+            "shape": [
+              1,
+              1,
+              64
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "current_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "total_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            144,
+            64
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 90.90306979999878,
+        "pte_bytes": 135321536
+      }
+    },
+    {
+      "path": "artifacts/optimization/layout-l64/vocoder.pte",
+      "sha256": "a64c23160a3937fc323aa6f68ac87081ff10b7ce66b8bc271c69e6cb5762410a",
+      "metadata": {
+        "component": "vocoder",
+        "model_sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "gelu": "exact",
+        "conv_layout": "channel-last",
+        "text_length": 128,
+        "latent_length": 64,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 41,
+        "reference_max_error": 1.0132789611816406e-06,
+        "reference_rmse": 1.3014010344091504e-07,
+        "reference_relative_l2": 1.5120069113984643e-06,
+        "inputs": [
+          {
+            "name": "latent",
+            "shape": [
+              1,
+              144,
+              64
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            196608
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 11.862360799917951,
+        "pte_bytes": 53354392
+      }
+    },
+    {
+      "path": "artifacts/optimization/layout-l96/vector_estimator.pte",
+      "sha256": "b1161d1b08ace5ee4a802d17432f34097caf1643b8a02be60377072ff64fa18f",
+      "metadata": {
+        "component": "vector_estimator",
+        "model_sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "gelu": "exact",
+        "conv_layout": "channel-last",
+        "text_length": 128,
+        "latent_length": 96,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 73,
+        "reference_max_error": 3.999471664428711e-05,
+        "reference_rmse": 2.6909985494309008e-06,
+        "reference_relative_l2": 1.9063603936114037e-06,
+        "inputs": [
+          {
+            "name": "noisy_latent",
+            "shape": [
+              1,
+              144,
+              96
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_emb",
+            "shape": [
+              1,
+              256,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "style_ttl",
+            "shape": [
+              1,
+              50,
+              256
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "latent_mask",
+            "shape": [
+              1,
+              1,
+              96
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "current_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "total_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            144,
+            96
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 111.51020120002795,
+        "pte_bytes": 135690176
+      }
+    },
+    {
+      "path": "artifacts/optimization/layout-l96/vocoder.pte",
+      "sha256": "4f7fbb26b03334741705d7f7f6713ce1a1a4e58e10bcfc74d201273910d8f0f2",
+      "metadata": {
+        "component": "vocoder",
+        "model_sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "gelu": "exact",
+        "conv_layout": "channel-last",
+        "text_length": 128,
+        "latent_length": 96,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 73,
+        "reference_max_error": 1.0728836059570312e-06,
+        "reference_rmse": 1.3856681059749394e-07,
+        "reference_relative_l2": 1.5014772791905661e-06,
+        "inputs": [
+          {
+            "name": "latent",
+            "shape": [
+              1,
+              144,
+              96
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            294912
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 14.334554600063711,
+        "pte_bytes": 53612440
+      }
+    },
+    {
+      "path": "artifacts/optimization/tanh-l96/vector_estimator.pte",
+      "sha256": "02601a38ecc0c4ffec53e096fcd487cbcf5eaa8c5a51b460f511078df8d8d309",
+      "metadata": {
+        "component": "vector_estimator",
+        "model_sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "gelu": "tanh",
+        "conv_layout": "original",
+        "text_length": 128,
+        "latent_length": 96,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 73,
+        "reference_max_error": 0.02813720703125,
+        "reference_rmse": 0.003176220046156075,
+        "reference_relative_l2": 0.002250101583543052,
+        "inputs": [
+          {
+            "name": "noisy_latent",
+            "shape": [
+              1,
+              144,
+              96
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_emb",
+            "shape": [
+              1,
+              256,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "style_ttl",
+            "shape": [
+              1,
+              50,
+              256
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "latent_mask",
+            "shape": [
+              1,
+              1,
+              96
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "current_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "total_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            144,
+            96
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 126.37135029991623,
+        "pte_bytes": 143980800
+      }
+    },
+    {
+      "path": "artifacts/optimization/tanh-l96/vocoder.pte",
+      "sha256": "ed615099521018c1d4ac1cb5d4f5b24a72f02c0104e7787a08e68195cb543793",
+      "metadata": {
+        "component": "vocoder",
+        "model_sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16",
+        "gelu": "tanh",
+        "conv_layout": "original",
+        "text_length": 128,
+        "latent_length": 96,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 73,
+        "reference_max_error": 0.0012381374835968018,
+        "reference_rmse": 0.00015456053109257797,
+        "reference_relative_l2": 0.0016747814624184613,
+        "inputs": [
+          {
+            "name": "latent",
+            "shape": [
+              1,
+              144,
+              96
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            294912
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 29.345163699937984,
+        "pte_bytes": 53999840
+      }
+    },
+    {
+      "path": "artifacts/qnn/duration_predictor.pte",
+      "sha256": "e94aac411fc51c03d27fc6c19b4831edf2b16dbffd8e1192bfa928805cd8af00",
+      "metadata": {
+        "component": "duration_predictor",
+        "text_length": 128,
+        "latent_length": 128,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 105,
+        "reference_max_error": 9.5367431640625e-07,
+        "reference_rmse": 9.5367431640625e-07,
+        "inputs": [
+          {
+            "name": "text_ids",
+            "shape": [
+              1,
+              128
+            ],
+            "dtype": "int64"
+          },
+          {
+            "name": "style_dp",
+            "shape": [
+              1,
+              8,
+              16
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 15.746103500016034,
+        "pte_bytes": 3055216,
+        "model_sha256": "c3eb91414d5ff8a7a239b7fe9e34e7e2bf8a8140d8375ffb14718b1c639325db",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16"
+      }
+    },
+    {
+      "path": "artifacts/qnn/text_encoder.pte",
+      "sha256": "dd91c72579deab08bb24d0fb0fd99e116538872c8a622dad5f175a59a21555e2",
+      "metadata": {
+        "component": "text_encoder",
+        "text_length": 128,
+        "latent_length": 128,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 105,
+        "reference_max_error": 3.844499588012695e-05,
+        "reference_rmse": 1.8787076963916575e-06,
+        "inputs": [
+          {
+            "name": "text_ids",
+            "shape": [
+              1,
+              128
+            ],
+            "dtype": "int64"
+          },
+          {
+            "name": "style_ttl",
+            "shape": [
+              1,
+              50,
+              256
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            256,
+            128
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 25.998608900001273,
+        "pte_bytes": 20508272,
+        "model_sha256": "c7befd5ea8c3119769e8a6c1486c4edc6a3bc8365c67621c881bbb774b9902ff",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16"
+      }
+    },
+    {
+      "path": "artifacts/qnn/vector_estimator.pte",
+      "sha256": "7d8d5ae4280d2139d87bfbb5e46f1f5952f3d84064917f9f2e694766df3768ea",
+      "metadata": {
+        "component": "vector_estimator",
+        "text_length": 128,
+        "latent_length": 128,
+        "reference": "original ONNX with unpadded valid sequences",
+        "valid_text_length": 111,
+        "valid_latent_length": 105,
+        "reference_max_error": 3.081560134887695e-05,
+        "reference_rmse": 1.90018953938121e-06,
+        "inputs": [
+          {
+            "name": "noisy_latent",
+            "shape": [
+              1,
+              144,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_emb",
+            "shape": [
+              1,
+              256,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "style_ttl",
+            "shape": [
+              1,
+              50,
+              256
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "latent_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "text_mask",
+            "shape": [
+              1,
+              1,
+              128
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "current_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          },
+          {
+            "name": "total_step",
+            "shape": [
+              1
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            144,
+            128
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 81.31752229994163,
+        "pte_bytes": 142446832,
+        "model_sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16"
+      }
+    },
+    {
+      "path": "artifacts/qnn/vocoder.pte",
+      "sha256": "194726732afb9b6edba41adedc727911418eb7d99bf4574106e76f5456828ac1",
+      "metadata": {
+        "component": "vocoder",
+        "text_length": 128,
+        "latent_length": 128,
+        "reference_max_error": 1.2293457984924316e-06,
+        "reference_rmse": 1.3440710330070148e-07,
+        "inputs": [
+          {
+            "name": "latent",
+            "shape": [
+              1,
+              144,
+              128
+            ],
+            "dtype": "float32"
+          }
+        ],
+        "output": {
+          "shape": [
+            1,
+            393216
+          ],
+          "dtype": "float32"
+        },
+        "delegates": 1,
+        "cpu_compute": [],
+        "compile_seconds": 14.582673200056888,
+        "pte_bytes": 53576928,
+        "model_sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba",
+        "qnn_sdk": "2.50.40.260831",
+        "target_soc": 88,
+        "htp_arch": 81,
+        "precision": "fp16"
+      }
+    }
+  ],
+  "profiles": {
+    "profiles": {
+      "vector_estimator": {
+        "warning": "Detailed profiling changes execution time; percentages are summed node cycles, not production latency",
+        "top_groups": [
+          {
+            "operation": "aten_gelu_default",
+            "percent_node_cycles": 43.54308270787915
+          },
+          {
+            "operation": "aten_permute_copy_default",
+            "percent_node_cycles": 24.24816924716109
+          },
+          {
+            "operation": "aten_mul_tensor",
+            "percent_node_cycles": 17.21276773774445
+          },
+          {
+            "operation": "aten_convolution_default",
+            "percent_node_cycles": 5.473040990575787
+          },
+          {
+            "operation": "aten_squeeze_copy_dims",
+            "percent_node_cycles": 2.284542968640497
+          },
+          {
+            "operation": "aten_matmul_default",
+            "percent_node_cycles": 1.4714403137545558
+          },
+          {
+            "operation": "aten_native_layer_norm_default",
+            "percent_node_cycles": 1.4566953615322624
+          },
+          {
+            "operation": "aten_add_tensor",
+            "percent_node_cycles": 0.7549035051761868
+          },
+          {
+            "operation": "aten_sum_dim_int_list",
+            "percent_node_cycles": 0.731853156572999
+          },
+          {
+            "operation": "aten_view_copy_default",
+            "percent_node_cycles": 0.6460649247720798
+          },
+          {
+            "operation": "aten_where_self",
+            "percent_node_cycles": 0.6290999999701948
+          },
+          {
+            "operation": "aten__softmax_default",
+            "percent_node_cycles": 0.5177439054817115
+          },
+          {
+            "operation": "aten_div_tensor",
+            "percent_node_cycles": 0.2831786073062201
+          },
+          {
+            "operation": "aten_cat_default",
+            "percent_node_cycles": 0.17382663348717436
+          },
+          {
+            "operation": "aten_slice_copy_tensor",
+            "percent_node_cycles": 0.13153926773714048
+          }
+        ],
+        "top_nodes": [
+          {
+            "node": "aten_gelu_default_4:OpId_692 (cycles)",
+            "cycles": 4544073.555555556,
+            "percent_node_cycles": 1.603855852400213
+          },
+          {
+            "node": "aten_gelu_default_10:OpId_1594 (cycles)",
+            "cycles": 4443684.0,
+            "percent_node_cycles": 1.5684228044468442
+          },
+          {
+            "node": "aten_gelu_default_5:OpId_957 (cycles)",
+            "cycles": 4411201.666666667,
+            "percent_node_cycles": 1.5569579855394593
+          },
+          {
+            "node": "aten_gelu_default_7:OpId_1271 (cycles)",
+            "cycles": 4404972.555555556,
+            "percent_node_cycles": 1.5547593863775704
+          },
+          {
+            "node": "aten_gelu_default_16:OpId_2496 (cycles)",
+            "cycles": 4403708.222222222,
+            "percent_node_cycles": 1.5543131329463131
+          },
+          {
+            "node": "aten_gelu_default_6:OpId_1168 (cycles)",
+            "cycles": 4401751.222222222,
+            "percent_node_cycles": 1.553622398990365
+          },
+          {
+            "node": "aten_gelu_default_14:OpId_2276 (cycles)",
+            "cycles": 4401031.888888889,
+            "percent_node_cycles": 1.5533685063184293
+          },
+          {
+            "node": "aten_gelu_default_22:OpId_3398 (cycles)",
+            "cycles": 4400142.666666667,
+            "percent_node_cycles": 1.5530546504250864
+          },
+          {
+            "node": "aten_gelu_default_18:OpId_2972 (cycles)",
+            "cycles": 4399302.555555556,
+            "percent_node_cycles": 1.5527581285695862
+          },
+          {
+            "node": "aten_gelu_default:OpId_266 (cycles)",
+            "cycles": 4399298.888888889,
+            "percent_node_cycles": 1.55275683439934
+          },
+          {
+            "node": "aten_gelu_default_15:OpId_2379 (cycles)",
+            "cycles": 4399073.444444444,
+            "percent_node_cycles": 1.5526772625378389
+          },
+          {
+            "node": "aten_gelu_default_25:OpId_3977 (cycles)",
+            "cycles": 4399056.777777778,
+            "percent_node_cycles": 1.5526713799458107
+          },
+          {
+            "node": "aten_gelu_default_27:OpId_4183 (cycles)",
+            "cycles": 4398915.666666667,
+            "percent_node_cycles": 1.5526215739999722
+          },
+          {
+            "node": "aten_gelu_default_17:OpId_2761 (cycles)",
+            "cycles": 4398547.444444444,
+            "percent_node_cycles": 1.5524916079334297
+          },
+          {
+            "node": "aten_gelu_default_2:OpId_472 (cycles)",
+            "cycles": 4398290.555555556,
+            "percent_node_cycles": 1.5524009375816357
+          },
+          {
+            "node": "aten_gelu_default_9:OpId_1477 (cycles)",
+            "cycles": 4398051.777777778,
+            "percent_node_cycles": 1.552316659646512
+          },
+          {
+            "node": "aten_gelu_default_12:OpId_2070 (cycles)",
+            "cycles": 4397994.111111111,
+            "percent_node_cycles": 1.5522963058780945
+          },
+          {
+            "node": "aten_gelu_default_23:OpId_3663 (cycles)",
+            "cycles": 4397958.555555556,
+            "percent_node_cycles": 1.5522837563484344
+          },
+          {
+            "node": "aten_gelu_default_26:OpId_4080 (cycles)",
+            "cycles": 4397875.111111111,
+            "percent_node_cycles": 1.5522543041710133
+          },
+          {
+            "node": "aten_gelu_default_24:OpId_3874 (cycles)",
+            "cycles": 4397872.777777778,
+            "percent_node_cycles": 1.5522534806081294
+          }
+        ]
+      },
+      "vocoder": {
+        "warning": "Detailed profiling changes execution time; percentages are summed node cycles, not production latency",
+        "top_groups": [
+          {
+            "operation": "aten_gelu_default",
+            "percent_node_cycles": 72.90434862740699
+          },
+          {
+            "operation": "aten_squeeze_copy_dims",
+            "percent_node_cycles": 6.718727890416855
+          },
+          {
+            "operation": "aten_permute_copy_default",
+            "percent_node_cycles": 6.140582378465379
+          },
+          {
+            "operation": "aten_convolution_default",
+            "percent_node_cycles": 6.127226647834299
+          },
+          {
+            "operation": "aten_mul_tensor",
+            "percent_node_cycles": 4.138034220895644
+          },
+          {
+            "operation": "aten_ge_tensor",
+            "percent_node_cycles": 1.7512284888727747
+          },
+          {
+            "operation": "aten_native_layer_norm_default",
+            "percent_node_cycles": 0.9788910224222404
+          },
+          {
+            "operation": "aten_add_tensor",
+            "percent_node_cycles": 0.5058246683956317
+          },
+          {
+            "operation": "aten_where_self",
+            "percent_node_cycles": 0.4032417097182655
+          },
+          {
+            "operation": "aten_view_copy_default",
+            "percent_node_cycles": 0.08945820498555682
+          },
+          {
+            "operation": "aten__native_batch_norm_legit_no_training_default",
+            "percent_node_cycles": 0.0687265923779286
+          },
+          {
+            "operation": "aten_expand_copy_default",
+            "percent_node_cycles": 0.0616378460791644
+          },
+          {
+            "operation": "aten_cat_default",
+            "percent_node_cycles": 0.046708077613907294
+          },
+          {
+            "operation": "aten_div_tensor",
+            "percent_node_cycles": 0.03816251297554471
+          },
+          {
+            "operation": "Output OpId_3 (cycles)",
+            "percent_node_cycles": 0.013216176319051464
+          }
+        ],
+        "top_nodes": [
+          {
+            "node": "aten_gelu_default:OpId_106 (cycles)",
+            "cycles": 26500658.888888888,
+            "percent_node_cycles": 7.307251586266453
+          },
+          {
+            "node": "aten_gelu_default_3:OpId_343 (cycles)",
+            "cycles": 26454990.777777776,
+            "percent_node_cycles": 7.294659130404973
+          },
+          {
+            "node": "aten_gelu_default_2:OpId_264 (cycles)",
+            "cycles": 26442133.555555556,
+            "percent_node_cycles": 7.2911138994025215
+          },
+          {
+            "node": "aten_gelu_default_1:OpId_185 (cycles)",
+            "cycles": 26441861.0,
+            "percent_node_cycles": 7.291038745346011
+          },
+          {
+            "node": "aten_gelu_default_4:OpId_422 (cycles)",
+            "cycles": 26440942.555555556,
+            "percent_node_cycles": 7.290785494864516
+          },
+          {
+            "node": "aten_gelu_default_5:OpId_501 (cycles)",
+            "cycles": 26439633.444444444,
+            "percent_node_cycles": 7.290424522547435
+          },
+          {
+            "node": "aten_gelu_default_6:OpId_580 (cycles)",
+            "cycles": 26438810.0,
+            "percent_node_cycles": 7.290197467222204
+          },
+          {
+            "node": "aten_gelu_default_7:OpId_659 (cycles)",
+            "cycles": 26430201.888888888,
+            "percent_node_cycles": 7.287823879688583
+          },
+          {
+            "node": "aten_gelu_default_9:OpId_817 (cycles)",
+            "cycles": 26403905.555555556,
+            "percent_node_cycles": 7.280572968521859
+          },
+          {
+            "node": "aten_gelu_default_8:OpId_738 (cycles)",
+            "cycles": 26403571.777777776,
+            "percent_node_cycles": 7.280480933142423
+          },
+          {
+            "node": "aten_convolution_default_31:OpId_869 (cycles)",
+            "cycles": 6748663.222222222,
+            "percent_node_cycles": 1.8608661861021765
+          },
+          {
+            "node": "aten_ge_tensor:OpId_876 (cycles)",
+            "cycles": 6351048.444444444,
+            "percent_node_cycles": 1.7512284888727747
+          },
+          {
+            "node": "aten_mul_tensor_11:OpId_877 (cycles)",
+            "cycles": 3034464.222222222,
+            "percent_node_cycles": 0.8367185734615453
+          },
+          {
+            "node": "aten_squeeze_copy_dims_31:OpId_874 (cycles)",
+            "cycles": 2517021.4444444445,
+            "percent_node_cycles": 0.6940396848130783
+          },
+          {
+            "node": "aten_squeeze_copy_dims_2:OpId_105 (cycles)",
+            "cycles": 2223221.4444444445,
+            "percent_node_cycles": 0.6130277173353483
+          },
+          {
+            "node": "aten_squeeze_copy_dims_5:OpId_184 (cycles)",
+            "cycles": 2202404.0,
+            "percent_node_cycles": 0.607287546701234
+          },
+          {
+            "node": "aten_squeeze_copy_dims_8:OpId_263 (cycles)",
+            "cycles": 2161215.0,
+            "percent_node_cycles": 0.5959301541605934
+          },
+          {
+            "node": "aten_squeeze_copy_dims_11:OpId_342 (cycles)",
+            "cycles": 2155938.6666666665,
+            "percent_node_cycles": 0.5944752659904038
+          },
+          {
+            "node": "aten_squeeze_copy_dims_29:OpId_816 (cycles)",
+            "cycles": 2154416.3333333335,
+            "percent_node_cycles": 0.5940555001003758
+          },
+          {
+            "node": "aten_squeeze_copy_dims_17:OpId_500 (cycles)",
+            "cycles": 2150892.0,
+            "percent_node_cycles": 0.5930837057593932
+          }
+        ]
+      }
+    },
+    "layout-profiles": {
+      "vector_estimator": {
+        "warning": "Detailed profiling changes execution time; percentages are summed node cycles, not production latency",
+        "top_groups": [
+          {
+            "operation": "aten_mul_tensor",
+            "percent_node_cycles": 43.08811911236259
+          },
+          {
+            "operation": "aten_permute_copy_default",
+            "percent_node_cycles": 18.694181032724288
+          },
+          {
+            "operation": "aten_view_copy_default",
+            "percent_node_cycles": 7.340408843306281
+          },
+          {
+            "operation": "aten_matmul_default",
+            "percent_node_cycles": 5.734766060515003
+          },
+          {
+            "operation": "aten_gelu_default",
+            "percent_node_cycles": 4.4518137676252
+          },
+          {
+            "operation": "aten_native_layer_norm_default",
+            "percent_node_cycles": 4.095295886469301
+          },
+          {
+            "operation": "aten_convolution_default",
+            "percent_node_cycles": 2.806551226183702
+          },
+          {
+            "operation": "aten_sum_dim_int_list",
+            "percent_node_cycles": 2.482430885969691
+          },
+          {
+            "operation": "aten_add_tensor",
+            "percent_node_cycles": 2.316291979857573
+          },
+          {
+            "operation": "aten_where_self",
+            "percent_node_cycles": 1.7478303369950166
+          },
+          {
+            "operation": "aten__softmax_default",
+            "percent_node_cycles": 1.5667461043371271
+          },
+          {
+            "operation": "aten_squeeze_copy_dims",
+            "percent_node_cycles": 1.4296730477292174
+          },
+          {
+            "operation": "aten_cat_default",
+            "percent_node_cycles": 1.3596737628117517
+          },
+          {
+            "operation": "aten_div_tensor",
+            "percent_node_cycles": 0.8048532124096018
+          },
+          {
+            "operation": "aten_split_with_sizes_copy_default",
+            "percent_node_cycles": 0.43204828605363876
+          }
+        ],
+        "top_nodes": [
+          {
+            "node": "aten_matmul_default_1:OpId_834 (cycles)",
+            "cycles": 644909.0,
+            "percent_node_cycles": 0.8304092472382776
+          },
+          {
+            "node": "aten_matmul_default_13:OpId_3522 (cycles)",
+            "cycles": 612936.6666666666,
+            "percent_node_cycles": 0.7892404602376547
+          },
+          {
+            "node": "aten_matmul_default_5:OpId_1730 (cycles)",
+            "cycles": 605392.7777777778,
+            "percent_node_cycles": 0.7795266632624669
+          },
+          {
+            "node": "aten_matmul_default_9:OpId_2626 (cycles)",
+            "cycles": 544255.6666666666,
+            "percent_node_cycles": 0.7008042040998552
+          },
+          {
+            "node": "aten_permute_copy_default_208:OpId_3223 (cycles)",
+            "cycles": 357207.8888888889,
+            "percent_node_cycles": 0.45995440305499924
+          },
+          {
+            "node": "aten_permute_copy_default_184:OpId_1431 (cycles)",
+            "cycles": 352786.22222222225,
+            "percent_node_cycles": 0.4542608976329858
+          },
+          {
+            "node": "aten_permute_copy_default_196:OpId_2327 (cycles)",
+            "cycles": 349161.8888888889,
+            "percent_node_cycles": 0.44959406880120656
+          },
+          {
+            "node": "aten_permute_copy_default_172:OpId_535 (cycles)",
+            "cycles": 342097.77777777775,
+            "percent_node_cycles": 0.44049805185899404
+          },
+          {
+            "node": "aten_matmul_default:OpId_801 (cycles)",
+            "cycles": 281834.22222222225,
+            "percent_node_cycles": 0.3629004159060286
+          },
+          {
+            "node": "aten__softmax_default:OpId_819 (cycles)",
+            "cycles": 281570.8888888889,
+            "percent_node_cycles": 0.36256133793517364
+          },
+          {
+            "node": "aten_matmul_default_4:OpId_1697 (cycles)",
+            "cycles": 266572.22222222225,
+            "percent_node_cycles": 0.34324848682556824
+          },
+          {
+            "node": "aten_matmul_default_8:OpId_2593 (cycles)",
+            "cycles": 259150.11111111112,
+            "percent_node_cycles": 0.33369149552804156
+          },
+          {
+            "node": "aten_matmul_default_12:OpId_3489 (cycles)",
+            "cycles": 246162.0,
+            "percent_node_cycles": 0.3169675118794572
+          },
+          {
+            "node": "aten__softmax_default_4:OpId_2611 (cycles)",
+            "cycles": 240062.55555555556,
+            "percent_node_cycles": 0.3091136362633892
+          },
+          {
+            "node": "aten__softmax_default_2:OpId_1715 (cycles)",
+            "cycles": 233121.44444444444,
+            "percent_node_cycles": 0.3001759987784494
+          },
+          {
+            "node": "aten_mul_tensor_141:OpId_2498 (cycles)",
+            "cycles": 229797.0,
+            "percent_node_cycles": 0.2958953182349982
+          },
+          {
+            "node": "aten_mul_tensor_239:OpId_4173 (cycles)",
+            "cycles": 221661.66666666666,
+            "percent_node_cycles": 0.2854199549986876
+          },
+          {
+            "node": "aten__softmax_default_6:OpId_3507 (cycles)",
+            "cycles": 218464.77777777778,
+            "percent_node_cycles": 0.2813035198183341
+          },
+          {
+            "node": "aten_where_self:OpId_818 (cycles)",
+            "cycles": 214272.55555555556,
+            "percent_node_cycles": 0.2759054557506732
+          },
+          {
+            "node": "aten_add_tensor_27:OpId_1498 (cycles)",
+            "cycles": 201174.66666666666,
+            "percent_node_cycles": 0.2590401180787957
+          }
+        ],
+        "output_vs_onnx": {
+          "max_error": 0.16856718063354492,
+          "rmse": 0.015803141552337505,
+          "relative_l2": 0.01119528033799278,
+          "cosine": 0.999938123248471,
+          "sqnr_db": 39.01930053795811
+        }
+      },
+      "vocoder": {
+        "warning": "Detailed profiling changes execution time; percentages are summed node cycles, not production latency",
+        "top_groups": [
+          {
+            "operation": "aten_convolution_default",
+            "percent_node_cycles": 27.006453787541812
+          },
+          {
+            "operation": "aten_ge_tensor",
+            "percent_node_cycles": 14.325921684707065
+          },
+          {
+            "operation": "aten_mul_tensor",
+            "percent_node_cycles": 12.083453784680401
+          },
+          {
+            "operation": "aten_gelu_default",
+            "percent_node_cycles": 8.687480444497947
+          },
+          {
+            "operation": "aten_native_layer_norm_default",
+            "percent_node_cycles": 7.667198929633026
+          },
+          {
+            "operation": "aten_linear_default",
+            "percent_node_cycles": 7.2117544689649575
+          },
+          {
+            "operation": "aten_squeeze_copy_dims",
+            "percent_node_cycles": 6.93231641162685
+          },
+          {
+            "operation": "aten_permute_copy_default",
+            "percent_node_cycles": 6.325417605978949
+          },
+          {
+            "operation": "aten_add_tensor",
+            "percent_node_cycles": 3.5054263860811563
+          },
+          {
+            "operation": "aten_where_self",
+            "percent_node_cycles": 3.4062102773354566
+          },
+          {
+            "operation": "aten_view_copy_default",
+            "percent_node_cycles": 0.7624783531817944
+          },
+          {
+            "operation": "aten_expand_copy_default",
+            "percent_node_cycles": 0.6422872871527471
+          },
+          {
+            "operation": "aten__native_batch_norm_legit_no_training_default",
+            "percent_node_cycles": 0.5783360684000565
+          },
+          {
+            "operation": "aten_cat_default",
+            "percent_node_cycles": 0.3781698754314435
+          },
+          {
+            "operation": "aten_div_tensor",
+            "percent_node_cycles": 0.2276985531558159
+          }
+        ],
+        "top_nodes": [
+          {
+            "node": "aten_convolution_default_11:OpId_829 (cycles)",
+            "cycles": 5561628.444444444,
+            "percent_node_cycles": 16.810681004141806
+          },
+          {
+            "node": "aten_ge_tensor:OpId_836 (cycles)",
+            "cycles": 4739573.222222222,
+            "percent_node_cycles": 14.325921684707065
+          },
+          {
+            "node": "aten_mul_tensor_11:OpId_837 (cycles)",
+            "cycles": 2287677.0,
+            "percent_node_cycles": 6.914774813108476
+          },
+          {
+            "node": "aten_squeeze_copy_dims_11:OpId_834 (cycles)",
+            "cycles": 2056215.2222222222,
+            "percent_node_cycles": 6.215154162476814
+          },
+          {
+            "node": "aten_permute_copy_default_97:OpId_841 (cycles)",
+            "cycles": 1393121.111111111,
+            "percent_node_cycles": 4.210873637633637
+          },
+          {
+            "node": "aten_where_self:OpId_838 (cycles)",
+            "cycles": 1126907.111111111,
+            "percent_node_cycles": 3.4062102773354566
+          },
+          {
+            "node": "aten_permute_copy_default_34:OpId_70 (cycles)",
+            "cycles": 521186.1111111111,
+            "percent_node_cycles": 1.5753467793106575
+          },
+          {
+            "node": "aten_convolution_default_5:OpId_376 (cycles)",
+            "cycles": 433164.8888888889,
+            "percent_node_cycles": 1.3092922049799078
+          },
+          {
+            "node": "aten_convolution_default_6:OpId_451 (cycles)",
+            "cycles": 376539.1111111111,
+            "percent_node_cycles": 1.1381340817175525
+          },
+          {
+            "node": "aten_convolution_default_2:OpId_151 (cycles)",
+            "cycles": 373133.3333333333,
+            "percent_node_cycles": 1.1278397148131236
+          },
+          {
+            "node": "aten_convolution_default_3:OpId_226 (cycles)",
+            "cycles": 371005.3333333333,
+            "percent_node_cycles": 1.1214075826536034
+          },
+          {
+            "node": "aten_gelu_default_8:OpId_701 (cycles)",
+            "cycles": 314342.77777777775,
+            "percent_node_cycles": 0.9501382941998947
+          },
+          {
+            "node": "aten_gelu_default_7:OpId_626 (cycles)",
+            "cycles": 313402.22222222225,
+            "percent_node_cycles": 0.9472953535811427
+          },
+          {
+            "node": "aten_gelu_default_4:OpId_401 (cycles)",
+            "cycles": 313288.22222222225,
+            "percent_node_cycles": 0.946950775072597
+          },
+          {
+            "node": "aten_gelu_default_5:OpId_476 (cycles)",
+            "cycles": 313285.55555555556,
+            "percent_node_cycles": 0.9469427147566076
+          },
+          {
+            "node": "aten_gelu_default_6:OpId_551 (cycles)",
+            "cycles": 313218.3333333333,
+            "percent_node_cycles": 0.9467395276243754
+          },
+          {
+            "node": "aten_gelu_default_3:OpId_326 (cycles)",
+            "cycles": 309016.8888888889,
+            "percent_node_cycles": 0.9340401639366175
+          },
+          {
+            "node": "aten_convolution_default_12:OpId_846 (cycles)",
+            "cycles": 308306.22222222225,
+            "percent_node_cycles": 0.9318920897254495
+          },
+          {
+            "node": "aten_gelu_default_2:OpId_251 (cycles)",
+            "cycles": 291585.6666666667,
+            "percent_node_cycles": 0.8813522292395781
+          },
+          {
+            "node": "aten_gelu_default_9:OpId_776 (cycles)",
+            "cycles": 283729.0,
+            "percent_node_cycles": 0.8576045232558857
+          }
+        ],
+        "output_vs_onnx": {
+          "max_error": 0.010248959064483643,
+          "rmse": 0.0013376701804331459,
+          "relative_l2": 0.014494678590859024,
+          "cosine": 0.9998968683598715,
+          "sqnr_db": 36.775828207440746
+        }
+      }
+    }
+  }
+}

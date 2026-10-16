@@ -51,6 +51,77 @@ python scripts/export_qnn.py --component vector_estimator
 python -m pytest tests -q
 ```
 
+## Optimization prototypes
+
+The optimization path uses 64-, 96- and 128-frame audio buckets, selected by the native duration predictor. Text models and model files are shared by reference; creating a preset does not duplicate them. Noise is generated once at the base capacity and cropped per channel, preserving the same valid noise across buckets.
+
+```powershell
+# Builds both presets using global Python 3.14. --reuse skips matching existing programs.
+python scripts/build_optimized.py --reuse
+
+# Conservative: original flow model, reformulated vocoder, automatic buckets.
+python scripts/synthesize.py --models artifacts/optimized --steps 8 --compare
+
+# Experimental: faster flow model, but several numerical checks failed.
+python scripts/synthesize.py --models artifacts/optimized-fast --steps 8 --compare
+
+# Original 128-frame baseline remains available explicitly.
+python scripts/synthesize.py --models artifacts/qnn --steps 8 --compare
+```
+
+Both presets use **FP16**, with FP32 public tensors. `ChannelLastConvNeXt` keeps LayerNorm and the pointwise MLP in batch/length/channel order and expresses 1×1 convolutions as linear projections. This preserves the FP32 calculation and the masked/causal boundary rules, while allowing a substantially faster QNN graph. FP16 rounding changes, so this rewrite needs numerical and perceptual evaluation. The conservative preset limits that change to the vocoder.
+
+Bucket selection alone was bit-exact with the baseline audio on all six initial test utterances. The full layout prototype passed the main-sentence screen but later failed short English and Portuguese final-latent limits. It remains experimental. Paired audio is saved alongside each report; these numerical checks do not establish listening quality or word error rate.
+
+Other experiments are available explicitly through `export_qnn.py`, and are not used by either preset:
+
+- `--gelu tanh` expands the standard tanh approximation. It passed numerical checks but did not improve full-pipeline latency in the 96-frame test.
+- `--precision a16w8 --calibration ...` applies PTQ with per-channel weights and a min/max activation observer. The tested full-model recipe failed badly on the device, including a calibration utterance. It is unsuitable for use as-is.
+- `--quant-scope affine --conv-layout channel-last` restricts PTQ to convolutions and linear projections. This prototype produced 37 delegate partitions with CPU operations remaining, and its eager calibration-sample error was already 10.9%. The exporter rejects remaining CPU compute. The full PTQ vocoder's eager error was 12.4%, before the much larger device error; neither recipe is qualified.
+
+Calibration uses eight separate utterances in five languages, with both five- and eight-step original ONNX trajectories: 104 vector-estimator inputs and 16 vocoder inputs. Generate it with `python scripts/calibrate_qnn.py`. The calibration manifest records the texts, voices, shapes, seed, steps and source assets. `--ptq-only` checks eager PTQ without compiling a program.
+
+Collect detailed operator timing using the already-installed native QNN tools:
+
+```powershell
+python scripts/profile_qnn.py --component vector_estimator
+python scripts/profile_qnn.py --component vocoder
+```
+
+The tool extracts the QNN context, runs `qnn-net-run`, and saves CSV, JSON summaries and output comparisons. It removes the redundant context copy after success unless `--keep-context` is set. Detailed profiling perturbs latency; its node-cycle percentages identify expensive operations and must not be used as synthesis RTF. In the original graphs, GELU accounted for approximately 44% of vector-estimator node cycles and 73% of vocoder node cycles. In the 96-frame layout graphs those shares fell to about 4% and 9%; layout changes were more effective than approximating the activation.
+
+Reproduce the held-out comparison, with no simultaneous compiler or profiler workload:
+
+```powershell
+python scripts/qualify_optimizations.py --variant baseline=artifacts/qnn --variant conservative=artifacts/optimized --variant fast=artifacts/optimized-fast --repeat 16 --steps 8 --output artifacts/optimization/final-8steps
+```
+
+The numerical screen requires each checked stage's relative L2 error ≤5%, final latent error ≤5%, and spectral convergence ≤10% versus original unpadded FP32 ONNX. These are engineering screening limits, not perceptual acceptance criteria. Reports also include exact baseline comparisons, warm medians/p90, selected buckets, first-request load costs, and program SHA256 hashes. A second seed and five-step runs can be selected with `--seed` and `--steps`. The command collects all cases and exits nonzero when any candidate fails a gate; this is expected for the current experimental fast preset and the long baseline case.
+
+### Optimization results on this device, 2026-10-15
+
+Seven held-out utterances, five languages, seed 42, eight flow steps, speed 1.05, **15 warm requests per case**, Windows Balanced power plan. Models remain loaded within each case; no compiler or detailed profiler runs during these measurements. The unchanged baseline is measured again in the same session, with candidate order reversed on alternating cases.
+
+| Case | Audio | Bucket | Original RTF | Conservative RTF | Experimental fast RTF |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| English M1 | 5.77 s | 96 | 0.0623 | **0.0414** | 0.0251 |
+| Short English F1 | 3.10 s | 64 | 0.1132 | **0.0475** | 0.0344 |
+| Korean F2 | 5.41 s | 96 | 0.0602 | **0.0449** | 0.0261 |
+| Spanish M3 | 3.51 s | 64 | 0.1038 | **0.0418** | 0.0314 |
+| French F4 | 3.32 s | 64 | 0.1050 | **0.0452** | 0.0333 |
+| Portuguese M5 | 4.33 s | 64 | 0.0827 | **0.0348** | 0.0227 |
+| Longer English M1 | 7.61 s | 128 | 0.0457 | **0.0348** | 0.0214 |
+
+The **conservative preset is recommended for further audio evaluation**: 24–60% lower median latency, all seven median RTFs below 0.05, and bit-identical final flow latents versus the baseline in every case. Its vocoder waveform differs from the baseline by 1.8–2.8% relative L2. Timing is the native synthesis interval, excluding loading, Python preprocessing and file I/O; the highest case p90 is 0.0533 RTF.
+
+Absolute ONNX qualification is **partial**. Six of seven conservative cases pass all screening limits. The longer utterance has 6.03% final-latent error in both the original and conservative paths; this error is inherited from the baseline. The fast preset adds failures on short English (5.50%) and Portuguese (8.17%) at seed 42, and is not recommended as the default. No listening study or ASR/WER evaluation has been performed.
+
+Seed 43 repeats all seven utterances with both presets. Six of seven conservative cases pass; Spanish fails with 7.92% latent error and 14.40% spectral convergence. A separate baseline rerun confirms identical latents and the same inherited failure (14.56% spectral convergence). The fast preset also misses the spectral threshold on Korean at this seed. These seed-sensitive FP16 differences require further accuracy work independently of the speed optimization.
+
+At **five steps**, both original English cases pass the numerical screen with the conservative preset: main sentence **123 ms / 0.0213 RTF**, short sentence **76 ms / 0.0246 RTF**, each with nine warm requests. Matched baseline RTFs are 0.0418 and 0.0877. These results are in `artifacts/optimization/final-5steps/`.
+
+Full measurements and paired WAVs are in `artifacts/optimization/final-8steps/`. The conservative main-sentence audio is `en-main/conservative/supertonic_htp.wav`, beside `onnx_reference.wav`. A [repository evidence snapshot](benchmarks/optimization-2026-10-15.json) retains measurements, failures, profiles, and SHA256 hashes for the tested programs. `scripts/summarize_optimizations.py` regenerates it from the local reports. Keep the explicit original-model command above when comparing future changes.
+
 ## Conversion changes
 
 `prepare_executorch.py` adds SC8480XP / V81 to ExecuTorch's Python and FlatBuffer target schemas. It requests an 8 MB VTCM allocation; this is a compiler setting, not a statement about total hardware capacity.
@@ -75,7 +146,7 @@ Timing reports separate first-load cost, each component invocation, the five vec
 
 ### Validated on this device, 2026-10-15
 
-All four corrected programs contain **one QNN delegate each and zero CPU compute nodes**. Physical-device checks passed for every component. Nine regression tests cover the conversion rewrites and convolution boundaries, including length-one sequences and dilated convolutions. Python package dependency checks pass.
+All four corrected programs contain **one QNN delegate each and zero CPU compute nodes**. Physical-device checks passed for every component. Twenty regression tests now cover the conversion rewrites, masked and causal convolution boundaries, layout equivalence, approximation bounds, and bundle compatibility. Python package dependency checks pass.
 
 | Speech case | Audio duration | Warm synthesis median | Real-time factor |
 | --- | ---: | ---: | ---: |
@@ -101,5 +172,6 @@ Reproduce the main measurement with `python scripts/synthesize.py --compare --re
 
 - [ExecuTorch Supertonic implementation](https://github.com/pytorch/executorch/tree/v1.5.0/examples/models/supertonic), initially contributed by [Young Han (@seyeong-han)](https://github.com/pytorch/executorch/pull/22063).
 - [Qualcomm backend documentation](https://docs.pytorch.org/executorch/1.5/backends-qualcomm.html).
+- [FluidAudio Supertonic pipeline](https://github.com/FluidInference/FluidAudio/blob/main/Sources/FluidAudio/TTS/Supertonic3/Pipeline/Synthesize/Supertonic3Synthesizer.swift) and [Mobius optimization experiments](https://github.com/FluidInference/mobius/blob/main/models/tts/supertonic-3/OPTIMIZATION.md), reviewed when selecting bucket and graph experiments. Apple measurements are not used as Qualcomm benchmarks.
 - Original inference code is the initialized `external/supertonic` submodule.
 - [Supertonic 3 assets](https://huggingface.co/supertone-oss-archive/supertonic-3/tree/aafc6e32416a594460b32413efc49d7fe4ce6d46), pinned and recorded in `assets/manifest.json`. See the downloaded `assets/LICENSE` for model terms.

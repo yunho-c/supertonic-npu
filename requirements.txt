@@ -1,6 +1,7 @@
 # ExecuTorch v1.5.0's torch_pin.py requires PyTorch 2.14.0.
 executorch==1.5.0
 torch==2.14.0
+torchao==0.18.0
 onnx==1.23.2
 onnxruntime==1.31.0
 numpy==2.5.4

@@ -10,7 +10,7 @@ import numpy as np
 import onnxruntime as ort
 import soundfile as sf
 
-from qnn_runtime import ROOT, NativeRunner, metrics, tensor_file
+from qnn_runtime import ROOT, NativeRunner, metrics, model_configuration, tensor_file
 
 sys.path.insert(0, str(ROOT / "external/supertonic/py"))
 from helper import load_text_processor, load_voice_style
@@ -51,7 +51,7 @@ def compare_onnx(args, inputs, timing, report, sample_rate, output):
             "style_ttl": inputs["style_ttl"], "latent_mask": mask, "text_mask": reference_text["text_mask"],
             "current_step": np.array([step], np.float32), "total_step": np.array([args.steps], np.float32)})
     baseline = run("vocoder", {"latent": latent}).ravel()[:timing["wav_length"]]
-    actual_latent = np.fromfile(output / "latent.raw", np.float32).reshape(inputs["noise"].shape)[..., :latent_size]
+    actual_latent = np.fromfile(output / "latent.raw", np.float32).reshape(1, inputs["noise"].shape[1], timing["bucket_length"])[..., :latent_size]
     actual_audio = np.fromfile(output / "audio.raw", np.float32).ravel()[:timing["wav_length"]]
     isolated_vocoder = sessions["vocoder"].run(None, {"latent": actual_latent})[0].ravel()[:timing["wav_length"]]
     report["real_input_stages"]["vocoder"] = metrics(actual_audio, isolated_vocoder)
@@ -87,7 +87,11 @@ def main():
         parser.error("repeat, steps and speed must be positive (steps <= 100)")
     args.output.mkdir(parents=True, exist_ok=True)
     config = json.loads((args.assets / "onnx/tts.json").read_text())
-    metadata = json.loads((args.models / "vector_estimator.json").read_text())
+    base_models = args.models
+    if (args.models / "bundle.json").exists():
+        bundle = json.loads((args.models / "bundle.json").read_text())
+        base_models = args.models / bundle["base"]
+    metadata = json.loads((base_models / "vector_estimator.json").read_text())
     text_length, latent_length = metadata["text_length"], metadata["latent_length"]
     processor = load_text_processor(str(args.assets / "onnx"))
     text_ids, text_mask = processor([args.text], [args.lang])
@@ -105,6 +109,8 @@ def main():
                "speed": args.speed, "steps": args.steps, "sample_rate": sample_rate,
                "samples_per_latent": config["ae"]["base_chunk_size"] * config["ttl"]["chunk_compress_factor"]}
     report = {"text": args.text, "lang": args.lang, "voice": args.voice, "seed": args.seed,
+              "models": str(args.models.resolve()), "noise_length": latent_length,
+              "model_configuration": model_configuration(args.models),
               "steps": args.steps, "speed": args.speed, "sample_rate": sample_rate, "runs": []}
     with NativeRunner(args.models, args.output / "htp.log") as runner:
         for i in range(args.repeat):
@@ -124,6 +130,8 @@ def main():
     audio = np.fromfile(args.output / "audio.raw", np.float32)[:timing["wav_length"]]
     if not np.isfinite(audio).all() or np.max(np.abs(audio)) < 1e-5:
         raise AssertionError("Output audio is non-finite or silent")
+    report["audio"] = {"peak": float(np.max(np.abs(audio))), "rms": float(np.sqrt(np.mean(audio.astype(np.float64) ** 2))),
+                       "clipped_sample_fraction": float(np.mean(np.abs(audio) >= 1))}
     sf.write(args.output / "supertonic_htp.wav", audio, sample_rate, subtype="PCM_16")
     if args.compare:
         try:

@@ -7,6 +7,7 @@
 #include <nlohmann/json.hpp>
 
 #include <chrono>
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <filesystem>
@@ -61,28 +62,46 @@ void write_tensor(const TensorPtr& tensor, const std::filesystem::path& path) {
 
 class Runner {
   std::filesystem::path models_;
+  std::map<int, std::filesystem::path> buckets_;
+  std::map<int, std::filesystem::path> vocoder_buckets_;
   std::map<std::string, std::unique_ptr<Module>> modules_;
  public:
-  explicit Runner(std::filesystem::path models) : models_(std::move(models)) {}
+  explicit Runner(std::filesystem::path models) : models_(std::move(models)) {
+    const auto manifest = models_ / "bundle.json";
+    if (std::filesystem::exists(manifest)) {
+      const auto bundle = json::parse(std::ifstream(manifest));
+      for (const auto& bucket : bundle.at("buckets")) {
+        buckets_.emplace(bucket.at("latent_length").get<int>(),
+                         models_ / bucket.at("models").get<std::string>());
+        if (bucket.contains("vocoder"))
+          vocoder_buckets_.emplace(bucket.at("latent_length").get<int>(),
+                                  models_ / bucket.at("vocoder").get<std::string>());
+      }
+      models_ /= bundle.at("base").get<std::string>();
+    }
+  }
 
-  Module& load(const std::string& name, json& timings) {
+  Module& load(const std::string& name, json& timings, int bucket = 0) {
     if (name != "duration_predictor" && name != "text_encoder" &&
         name != "vector_estimator" && name != "vocoder")
       throw std::runtime_error("Unknown component: " + name);
-    if (!modules_.count(name)) {
+    const auto directory = bucket ? (name == "vocoder" && vocoder_buckets_.count(bucket)
+        ? vocoder_buckets_.at(bucket) : buckets_.at(bucket)) : models_;
+    const auto path = (directory / (name + ".pte")).lexically_normal().string();
+    if (!modules_.count(path)) {
       const auto start = Clock::now();
-      auto module = std::make_unique<Module>((models_ / (name + ".pte")).string());
+      auto module = std::make_unique<Module>(path);
       const auto error = module->load_forward();
       if (error != Error::Ok)
         throw std::runtime_error("Loading " + name + " failed: " + std::to_string(int(error)));
-      modules_[name] = std::move(module);
+      modules_[path] = std::move(module);
       timings[name + "_load_ms"] = elapsed(start);
     }
-    return *modules_.at(name);
+    return *modules_.at(path);
   }
 
-  TensorPtr run(const std::string& name, const std::vector<TensorPtr>& inputs, json& timings) {
-    auto& module = load(name, timings);
+  TensorPtr run(const std::string& name, const std::vector<TensorPtr>& inputs, json& timings, int bucket = 0) {
+    auto& module = load(name, timings, bucket);
     std::vector<EValue> values;
     for (const auto& input : inputs) values.emplace_back(*input);
     const auto start = Clock::now();
@@ -113,8 +132,12 @@ class Runner {
       write_tensor(output, request.at("output").get<std::string>());
     } else if (request.at("command") == "synthesize") {
       // Keep all four modules loaded and the flow loop inside this process.
-      for (const auto* name : {"duration_predictor", "text_encoder", "vector_estimator", "vocoder"})
+      for (const auto* name : {"duration_predictor", "text_encoder"})
         load(name, timings);
+      if (buckets_.empty()) {
+        load("vector_estimator", timings);
+        load("vocoder", timings);
+      }
       std::map<std::string, TensorPtr> inputs;
       for (auto it = request.at("inputs").begin(); it != request.at("inputs").end(); ++it)
         inputs[it.key()] = read_tensor(it.value());
@@ -130,15 +153,29 @@ class Runner {
       const int chunk = request.at("samples_per_latent");
       const int wav_length = static_cast<int>(seconds * sample_rate);
       const int latent_length = (wav_length + chunk - 1) / chunk;
-      auto latent = inputs.at("noise");
-      const int capacity = latent->size(2);
+      const auto noise = inputs.at("noise");
+      int capacity = noise->size(2);
+      int bucket = 0;
+      double selected_load_ms = 0;
+      if (!buckets_.empty()) {
+        const auto selected = buckets_.lower_bound(latent_length);
+        if (selected == buckets_.end()) throw std::runtime_error("Speech exceeds largest compiled bucket");
+        bucket = capacity = selected->first;
+        if (capacity > noise->size(2)) throw std::runtime_error("Noise is shorter than selected bucket");
+        const auto loading_start = Clock::now();
+        load("vector_estimator", timings, bucket);
+        load("vocoder", timings, bucket);
+        selected_load_ms = elapsed(loading_start);
+      }
       if (latent_length > capacity)
         throw std::runtime_error("Speech exceeds compiled latent capacity; shorten text or export a larger bucket");
       auto mask = make_tensor_ptr({1, 1, capacity}, std::vector<float>(capacity, 0));
       for (int t = 0; t < latent_length; ++t) mask->mutable_data_ptr<float>()[t] = 1;
-      for (int c = 0; c < latent->size(1); ++c)
-        for (int t = latent_length; t < capacity; ++t)
-          latent->mutable_data_ptr<float>()[c * capacity + t] = 0;
+      auto latent = make_tensor_ptr({1, static_cast<int32_t>(noise->size(1)), capacity},
+                                    std::vector<float>(noise->size(1) * capacity, 0));
+      for (int c = 0; c < noise->size(1); ++c)
+        std::copy_n(noise->const_data_ptr<float>() + c * noise->size(2), latent_length,
+                    latent->mutable_data_ptr<float>() + c * capacity);
       const auto embedding = run("text_encoder", {inputs.at("text_ids"), inputs.at("style_ttl"), inputs.at("text_mask")}, timings);
       const int steps = request.value("steps", 5);
       if (steps < 1 || steps > 100) throw std::runtime_error("Invalid flow step count");
@@ -146,10 +183,12 @@ class Runner {
       auto total = make_tensor_ptr({1}, std::vector<float>{float(steps)});
       for (int step = 0; step < steps; ++step) {
         current->mutable_data_ptr<float>()[0] = float(step);
-        latent = run("vector_estimator", {latent, embedding, inputs.at("style_ttl"), mask, inputs.at("text_mask"), current, total}, timings);
+        latent = run("vector_estimator", {latent, embedding, inputs.at("style_ttl"), mask, inputs.at("text_mask"), current, total}, timings, bucket);
       }
-      const auto audio = run("vocoder", {latent}, timings);
-      timings["inference_ms"] = elapsed(inference_start);
+      const auto audio = run("vocoder", {latent}, timings, bucket);
+      timings["inference_ms"] = elapsed(inference_start) - selected_load_ms;
+      timings["selected_bucket_load_ms"] = selected_load_ms;
+      timings["bucket_length"] = capacity;
       write_tensor(duration, out_dir / "duration.raw");
       write_tensor(embedding, out_dir / "text_emb.raw");
       write_tensor(latent, out_dir / "latent.raw");

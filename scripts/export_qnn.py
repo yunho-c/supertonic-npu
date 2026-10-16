@@ -25,7 +25,7 @@ from examples.models.supertonic.source_transformations.mlx import (
     replace_same_padding,
     replace_vocoder_causal_padding,
 )
-from qnn_transformations import prepare_vector_graph, replace_masked_padding
+from qnn_transformations import optimize_modules, prepare_vector_graph, replace_masked_padding
 
 
 def main() -> None:
@@ -38,7 +38,17 @@ def main() -> None:
     parser.add_argument("--latent-length", type=int, default=128)
     parser.add_argument("--reference-only", action="store_true")
     parser.add_argument("--profile", action="store_true")
+    parser.add_argument("--precision", choices=["fp16", "a16w8"], default="fp16")
+    parser.add_argument("--calibration", type=Path)
+    parser.add_argument("--gelu", choices=["exact", "tanh"], default="exact")
+    parser.add_argument("--conv-layout", choices=["original", "channel-last"], default="original")
+    parser.add_argument("--quant-scope", choices=["all", "affine"], default="all")
+    parser.add_argument("--ptq-only", action="store_true", help="Calibrate and check eager PTQ without compiling a program")
     args = parser.parse_args()
+    if args.precision != "fp16" and args.calibration is None:
+        parser.error("Quantization requires representative --calibration data")
+    if args.ptq_only and (args.precision == "fp16" or args.reference_only):
+        parser.error("--ptq-only requires quantization and cannot be combined with --reference-only")
     torch.set_num_threads(4)
     args.output.mkdir(parents=True, exist_ok=True)
     config = TTSConfig.from_json(args.assets / "onnx/tts.json")
@@ -64,6 +74,7 @@ def main() -> None:
             model = exportable_vector_estimator(model)
         elif name == "vocoder":
             model = replace_vocoder_causal_padding(model)
+        model = optimize_modules(model, args.gelu, args.conv_layout)
         inputs = tuple(value.float() if value.is_floating_point() else value for value in samples[name])
         input_names = contracts[name].input_names
         valid_text = max(1, args.text_length - 17)
@@ -95,7 +106,12 @@ def main() -> None:
             expected = np.pad(expected, ((0, 0), (0, 0), (0, args.latent_length - valid_latent)))
         with torch.no_grad():
             actual = model(*inputs).numpy()
-        np.testing.assert_allclose(actual, expected, atol=2e-4, rtol=2e-4)
+        if args.gelu == "exact":
+            np.testing.assert_allclose(actual, expected, atol=2e-4, rtol=2e-4)
+        else:
+            relative_l2 = np.linalg.norm(actual - expected) / max(np.linalg.norm(expected), 1e-30)
+            if not np.isfinite(actual).all() or relative_l2 > 0.01:
+                raise AssertionError(f"GELU approximation exceeds 1% reference relative L2: {relative_l2}")
         error = actual.astype(np.float64) - expected.astype(np.float64)
         record = {
             "component": name,
@@ -103,7 +119,9 @@ def main() -> None:
             "qnn_sdk": args.qnn_sdk.name,
             "target_soc": 88,
             "htp_arch": 81,
-            "precision": "fp16",
+            "precision": "mixed-a16w8-fp16" if args.precision == "a16w8" and args.quant_scope == "affine" else args.precision,
+            "gelu": args.gelu,
+            "conv_layout": args.conv_layout,
             "text_length": args.text_length,
             "latent_length": args.latent_length,
             "reference": "original ONNX with unpadded valid sequences",
@@ -111,6 +129,7 @@ def main() -> None:
             "valid_latent_length": valid_latent,
             "reference_max_error": float(np.abs(error).max()),
             "reference_rmse": float(np.sqrt(np.mean(error * error))),
+            "reference_relative_l2": float(np.linalg.norm(error) / max(np.linalg.norm(expected.astype(np.float64)), 1e-30)),
             "inputs": [{"name": key, "shape": list(value.shape), "dtype": str(value.dtype)} for key, value in named_inputs.items()],
             "output": {"shape": list(expected.shape), "dtype": str(expected.dtype)},
         }
@@ -126,9 +145,69 @@ def main() -> None:
             )
             from executorch.exir import ExecutorchBackendConfig
 
+            if args.precision == "a16w8":
+                from executorch.backends.qualcomm.quantizer.quantizer import QnnQuantizer, QuantDtype
+                from torchao.quantization.pt2e.quantize_pt2e import prepare_pt2e, convert_pt2e
+                from torchao.quantization.pt2e.observer import MinMaxObserver
+                prefix = {"vector_estimator": "vector", "vocoder": "vocoder"}.get(name)
+                if prefix is None:
+                    raise ValueError("PTQ prototype currently covers vector estimator and vocoder only")
+                calibration_manifest = json.loads((args.calibration / "manifest.json").read_text(encoding="utf-8"))
+                if not calibration_manifest.get("complete", True):
+                    raise ValueError("Calibration collection did not complete")
+                calibration_hashes = {item["path"]: item["sha256"] for item in calibration_manifest["asset_manifest"]["files"]}
+                if any(calibration_hashes.get(path) != value for path, value in asset_hashes.items()):
+                    raise ValueError("Calibration assets differ from export assets")
+                if calibration_manifest["latent_length"] != args.latent_length or calibration_manifest["text_length"] != args.text_length:
+                    raise ValueError("Calibration shapes do not match the export")
+                calibration_paths = ([args.calibration / filename for filename in calibration_manifest["samples"][name]]
+                                     if "samples" in calibration_manifest else sorted(args.calibration.glob(f"{prefix}_*.npz")))
+                if not calibration_paths:
+                    raise ValueError("No calibration samples")
+                quantizer = QnnQuantizer(soc_model=QcomChipset.SC8480XP)
+                quantizer.set_default_quant_config(QuantDtype.use_16a8w, is_conv_per_channel=True,
+                                                  is_linear_per_channel=True, act_observer=MinMaxObserver)
+                if args.quant_scope == "affine":
+                    affine = {torch.ops.aten.linear.default, torch.ops.aten.conv1d.default,
+                              torch.ops.aten.conv2d.default, torch.ops.aten.convolution.default}
+                    quantizer.add_discard_ops(list(quantizer.quant_ops - affine))
+                prepared = prepare_pt2e(torch.export.export(model, inputs, strict=True).module(), quantizer)
+                with torch.no_grad():
+                    for index, path in enumerate(calibration_paths):
+                        with np.load(path) as sample:
+                            prepared(*(torch.from_numpy(sample[key]) for key in input_names))
+                        if index % 16 == 0:
+                            print(f"Calibration {index + 1}/{len(calibration_paths)}", flush=True)
+                model = convert_pt2e(prepared)
+                record["calibration"] = {"manifest": calibration_manifest, "samples": len(calibration_paths),
+                                         "observer": "MinMaxObserver", "weights": "per-channel 8-bit", "activations": "16-bit",
+                                         "scope": args.quant_scope}
+                with np.load(calibration_paths[0]) as sample, torch.no_grad():
+                    calibration_inputs = tuple(torch.from_numpy(sample[key]) for key in input_names)
+                    original_session = ort.InferenceSession(str(model_path), sess_options=options, providers=["CPUExecutionProvider"])
+                    original_feed = {key: sample[key] for key in input_names}
+                    if name == "vector_estimator":
+                        valid_l = int(sample["latent_mask"].sum())
+                        valid_t = int(sample["text_mask"].sum())
+                        for key in ("noisy_latent", "latent_mask"):
+                            original_feed[key] = original_feed[key][..., :valid_l]
+                        for key in ("text_emb", "text_mask"):
+                            original_feed[key] = original_feed[key][..., :valid_t]
+                    unquantized = original_session.run(None, original_feed)[0]
+                    if name == "vector_estimator":
+                        unquantized = np.pad(unquantized, ((0, 0), (0, 0), (0, args.latent_length - valid_l)))
+                    quantized = model(*calibration_inputs).numpy()
+                    record["ptq_calibration_sample_relative_l2"] = float(np.linalg.norm(quantized - unquantized) / np.linalg.norm(unquantized))
+                    print(f"PTQ eager sample relative L2: {record['ptq_calibration_sample_relative_l2']:.6g}", flush=True)
+                    del original_session
+                if args.ptq_only:
+                    (args.output / f"{name}.json").write_text(json.dumps(record, indent=2) + "\n")
+                    del model, prepared
+                    gc.collect()
+                    continue
             specs = generate_qnn_executorch_compiler_spec(
                 soc_model=QcomChipset.SC8480XP,
-                backend_options=generate_htp_compiler_spec(use_fp16=True),
+                backend_options=generate_htp_compiler_spec(use_fp16=args.precision == "fp16" or args.quant_scope == "affine"),
                 profile_level=2 if args.profile else 0,
             )
             start = time.perf_counter()
