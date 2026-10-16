@@ -122,6 +122,69 @@ At **five steps**, both original English cases pass the numerical screen with th
 
 Full measurements and paired WAVs are in `artifacts/optimization/final-8steps/`. The conservative main-sentence audio is `en-main/conservative/supertonic_htp.wav`, beside `onnx_reference.wav`. A [repository evidence snapshot](benchmarks/optimization-2026-10-15.json) retains measurements, failures, profiles, and SHA256 hashes for the tested programs. `scripts/summarize_optimizations.py` regenerates it from the local reports. Keep the explicit original-model command above when comparing future changes.
 
+## Grouped flow experiments
+
+`scripts/export_flow.py` exports 2, 4 or 8 consecutive flow steps as one QNN graph. The initial measurements below use the original convolution layout, exact GELU and FP16; they target a fixed eight-step synthesis schedule. `plainN` only groups calls. `reuseN` also computes text/style attention keys, values and mask-dependent rotary terms once per group. `specialN` additionally precomputes the time encoder and each block's time projection in FP32. The latter can change device rounding and needs separate numerical qualification.
+
+```powershell
+# Build one 96-frame bucket; share the existing text models and layout vocoder.
+python scripts/build_flow.py --variant reuse8 --bucket 96 --reuse
+
+# Explicit eight-step schedule; the runtime rejects incompatible step counts.
+python scripts/synthesize.py --models artifacts/flow/reuse8-buckets96 --steps 8 --compare
+
+# Same bucket and vocoder on both sides; do not compile while measuring.
+python scripts/make_bundle.py --bucket artifacts/optimization/fp16-l96 --vocoder artifacts/optimization/layout-l96 --output artifacts/flow/baseline96
+python scripts/qualify_optimizations.py --variant baseline=artifacts/flow/baseline96 --variant reuse8=artifacts/flow/reuse8-buckets96 --case en-main --case ko --steps 8 --repeat 16 --output artifacts/flow/screen-reuse8
+
+# Optional timeline of native host calls, copies and cold loads, viewable in Perfetto.
+python scripts/synthesize.py --models artifacts/flow/reuse8-buckets96 --steps 8 --repeat 3 --trace --output artifacts/flow/trace-reuse8
+```
+
+The exporter checks repeated original unpadded ONNX outputs before conversion and requires exactly one QNN delegate with no CPU compute fallback. The same parameter objects are reused across steps. Metadata records the fixed schedule, reuse options, reference errors, operation counts, compile time and program size. `build_flow.py` accepts `plainN`, `reuseN` and `specialN` for N = 2, 4 or 8; use `--bucket 64 --bucket 96 --bucket 128` only after screening one shape. Each compiled group receives the starting step; the native runner advances by the group size, validates the schedule, and records the actual invocation count.
+
+The compiled 96-frame variants have the following costs. MB is decimal; compilation time excludes model loading and reference checks. Every row compiled into one QNN delegate with no CPU compute fallback.
+
+| Variant | Flow calls per synthesis | Program MB | Compilation seconds |
+| --- | ---: | ---: | ---: |
+| Original | 8 | 141.30 | — |
+| `plain2` | 4 | 143.97 | 169 |
+| `reuse2` | 4 | 143.96 | 137 |
+| `reuse4` | 2 | 149.28 | 263 |
+| `reuse8` | 1 | 160.14 | 653 |
+| `special2` | 4 | 143.63 | 128 |
+| `special8` | 1 | 160.38 | 589 |
+
+The six-case, seed-42 screen used the same 96-frame bucket and layout vocoder for every variant, with 15 warm requests per case. Median native synthesis times were:
+
+| Case | Original ms | `reuse4` ms | `reuse8` ms | `special8` ms |
+| --- | ---: | ---: | ---: | ---: |
+| English main | 226.48 | 222.42 | 220.24 | 216.32 |
+| English short | 227.36 | 227.25 | 208.27 | 229.90 |
+| Korean | 225.95 | 216.63 | 222.56 | 217.83 |
+| Spanish | 228.46 | 215.95 | 224.91 | 229.17 |
+| French | 221.07 | 228.06 | 231.91 | 225.84 |
+| Portuguese | 228.97 | 235.04 | 226.88 | 226.09 |
+
+These results do **not establish a reliable overall speedup**. Repeated screens, including reversed variant order and 31 warm requests, changed the ranking. In the final mixed-bucket comparison, `reuse8` was 17.7% slower on the main English case and 6.7% faster on Korean. An unchanged 64-frame model also varied by 22.9% between the two bundles in that session. The observed variation is large relative to the expected gain. Unrolling removes host crossings and invariant work, but still evaluates all eight flow steps; the existing conservative preset remains recommended. Short-input timings in the table deliberately use length 96 and should not be compared with the faster automatic 64-frame bucket.
+
+`reuse8` produced **bit-identical final latents and audio in all 12 paired cases** across seeds 42 and 43. `reuse4` was also bit-identical in all six seed-42 cases. All six seed-42 cases passed the numerical gates, including `special8`. Seed-43 Spanish failed the existing baseline gates (7.92% final-latent relative L2 and 14.40% spectral convergence); `reuse8` reproduced that failure exactly. Time specialization changed rounding and made this case worse (9.12% and 18.62%). It is retained as an experiment, without a demonstrated consistent latency benefit. These numerical checks are not a listening or intelligibility evaluation; seed-43 runs were accuracy checks with only two warm requests.
+
+An opt-in bundle uses `reuse8` only at length 96 and shares the existing original flow models at 64 and 128. It preserves automatic bucket selection without duplicating binaries:
+
+```powershell
+python scripts/make_bundle.py --bucket artifacts/optimization/fp16-l64 --bucket artifacts/flow/reuse8-l96 --bucket artifacts/qnn --vocoder artifacts/optimization/layout-l64 --vocoder artifacts/optimization/layout-l96 --vocoder artifacts/optimization/layout-l128 --output artifacts/flow/reuse8-mixed
+python scripts/synthesize.py --models artifacts/flow/reuse8-mixed --steps 8 --compare
+```
+
+That mixed bundle produced bit-identical audio to `artifacts/optimized` in all seven held-out cases. Its median RTFs were **0.0328–0.0453**, with 15 warm requests per case. Both bundles retained the known long-English final-latent failure (6.03% relative L2). Only the 96-frame cases use one flow call; 64 and 128 retain eight calls. This bundle is opt-in, not a replacement for the conservative preset.
+
+`host_trace.json` measures **host wall time**, including synchronous backend execution. It is not an HTP hardware-activity trace. Hardware Optrace requires a separate profiling capture and schematic; the existing detailed operator profiles cannot provide that timeline. Profiling remains disabled for ordinary latency measurements.
+
+The saved `artifacts/flow/trace-baseline96/host_trace.json` and `artifacts/flow/trace-reuse8/host_trace.json` contain 24 and 3 flow-forward spans over three requests, respectively. Open either in [Perfetto](https://ui.perfetto.dev/). Separate detailed QNN profiles in `artifacts/flow/profiles/` still attribute 42.6% of summed node cycles to GELU and 26.4% to permutations in `reuse8`, versus 42.6% and 25.3% in the original 96-frame graph. These instrumented percentages are not production latency; they indicate that the dominant activation/layout work remains after fusion.
+
+The [grouped-flow evidence snapshot](benchmarks/flow-unroll-2026-10-15.json) retains compilation metadata, program hashes, individual warm timings, numerical failures and profile summaries. `python scripts/summarize_flow.py` regenerates it from the local reports without storing model binaries in Git. Adapted attention code retains its upstream [ExecuTorch license](licenses/executorch.txt).
+
 ## Conversion changes
 
 `prepare_executorch.py` adds SC8480XP / V81 to ExecuTorch's Python and FlatBuffer target schemas. It requests an 8 MB VTCM allocation; this is a compiler setting, not a statement about total hardware capacity.
@@ -146,7 +209,7 @@ Timing reports separate first-load cost, each component invocation, the five vec
 
 ### Validated on this device, 2026-10-15
 
-All four corrected programs contain **one QNN delegate each and zero CPU compute nodes**. Physical-device checks passed for every component. Twenty regression tests now cover the conversion rewrites, masked and causal convolution boundaries, layout equivalence, approximation bounds, and bundle compatibility. Python package dependency checks pass.
+All four corrected programs contain **one QNN delegate each and zero CPU compute nodes**. Physical-device checks passed for every component. The current suite has 40 regression tests covering conversion rewrites, masked and causal convolution boundaries, layout equivalence, approximation bounds, grouped-flow equivalence, fixed-schedule validation, and bundle compatibility. Python package dependency checks pass.
 
 | Speech case | Audio duration | Warm synthesis median | Real-time factor |
 | --- | ---: | ---: | ---: |

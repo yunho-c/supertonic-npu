@@ -45,3 +45,22 @@ def test_bundle_rejects_incompatible_or_incomplete_programs(tmp_path, problem):
     metadata_path.write_text(json.dumps(metadata))
     with pytest.raises((ValueError, FileNotFoundError)):
         make_bundle(base, [candidate], tmp_path / "bundle")
+
+
+@pytest.mark.parametrize("unroll,schedule", [(2, 8), (3, 8), (4, 5), (2, 0)])
+def test_bundle_checks_and_records_fixed_flow_schedule(tmp_path, unroll, schedule):
+    base = models(tmp_path / "base", 128)
+    candidate = models(tmp_path / "candidate", 64)
+    path = candidate / "vector_estimator.json"
+    record = json.loads(path.read_text())
+    record.update(flow_unroll=unroll, flow_total_steps=schedule)
+    path.write_text(json.dumps(record))
+    if (unroll, schedule) != (2, 8):
+        with pytest.raises(ValueError, match="schedule"):
+            make_bundle(base, [candidate], tmp_path / "bundle")
+    else:
+        output = tmp_path / "bundle"
+        make_bundle(base, [candidate], output)
+        result = json.loads((output / "bundle.json").read_text())
+        assert result["flow_total_steps"] == 8
+        assert result["buckets"][0]["flow_unroll"] == 2

@@ -79,6 +79,7 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--repeat", type=int, default=3)
     parser.add_argument("--compare", action="store_true")
+    parser.add_argument("--trace", action="store_true", help="Write a Perfetto host-call timeline (not HTP hardware activity)")
     parser.add_argument("--assets", type=Path, default=ROOT / "assets")
     parser.add_argument("--models", type=Path, default=ROOT / "artifacts/qnn")
     parser.add_argument("--output", type=Path, default=ROOT / "artifacts/speech")
@@ -90,8 +91,12 @@ def main():
     base_models = args.models
     if (args.models / "bundle.json").exists():
         bundle = json.loads((args.models / "bundle.json").read_text())
+        if bundle.get("flow_total_steps", args.steps) != args.steps:
+            parser.error(f"This bundle requires --steps {bundle['flow_total_steps']}")
         base_models = args.models / bundle["base"]
     metadata = json.loads((base_models / "vector_estimator.json").read_text())
+    if metadata.get("flow_total_steps", args.steps) != args.steps:
+        parser.error(f"These models require --steps {metadata['flow_total_steps']}")
     text_length, latent_length = metadata["text_length"], metadata["latent_length"]
     processor = load_text_processor(str(args.assets / "onnx"))
     text_ids, text_mask = processor([args.text], [args.lang])
@@ -106,6 +111,7 @@ def main():
     specs = {key: tensor_file(args.output / "inputs", key, value) for key, value in inputs.items()}
     sample_rate = config["ae"]["sample_rate"]
     request = {"command": "synthesize", "inputs": specs, "output_dir": str(args.output.resolve()),
+               "trace": args.trace,
                "speed": args.speed, "steps": args.steps, "sample_rate": sample_rate,
                "samples_per_latent": config["ae"]["base_chunk_size"] * config["ttl"]["chunk_compress_factor"]}
     report = {"text": args.text, "lang": args.lang, "voice": args.voice, "seed": args.seed,
@@ -117,6 +123,13 @@ def main():
             timing = runner.request(request)
             report["runs"].append(timing)
             print(f"Run {i + 1}: {timing['duration_seconds']:.2f}s audio in {timing['inference_ms']:.1f}ms; RTF {timing['rtf']:.4f}", flush=True)
+    if args.trace:
+        events = [event for run in report["runs"] for event in run["trace_events"]]
+        origin = min(event["ts"] for event in events)
+        events = [{**event, "ts": event["ts"] - origin} for event in events]
+        events.insert(0, {"ph": "M", "pid": 1, "tid": 1, "name": "thread_name",
+                          "args": {"name": "ARM64 host calls and copies; not HTP activity"}})
+        (args.output / "host_trace.json").write_text(json.dumps({"traceEvents": events}) + "\n")
     warm = report["runs"][1:]
     if warm:
         report["warm_summary"] = {

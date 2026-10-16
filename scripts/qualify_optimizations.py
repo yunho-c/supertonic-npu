@@ -21,6 +21,7 @@ def main():
     parser.add_argument("--output", type=Path, default=ROOT / "artifacts/optimization/qualification")
     parser.add_argument("--timing-only", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--reverse-order", action="store_true", help="Reverse the alternating variant order for a matched repeat")
     args = parser.parse_args()
     if args.repeat < 3:
         parser.error("At least three requests are required")
@@ -36,6 +37,7 @@ def main():
                "requests_per_case": args.repeat, "warm_requests_per_case": args.repeat - 1,
                "noise": "Identical seed at base capacity 128, cropped per channel by native runner",
                "timing": "Warm native synthesis; excludes loading, Python preprocessing and file I/O; profile collection disabled",
+               "reverse_order": args.reverse_order,
                "limitations": "Small held-out corpus, one seed; numerical checks do not establish perceptual quality or WER",
                "numerical_gates": {"stage_relative_l2_max": 0.05, "final_latent_relative_l2_max": 0.05,
                                    "spectral_convergence_max": 0.10},
@@ -43,7 +45,7 @@ def main():
     for index, case in enumerate(cases):
         results = {}
         ordered = list(variants.items())
-        if index % 2:
+        if (index + args.reverse_order) % 2:
             ordered.reverse()
         for name, models in ordered:
             output = args.output / case["id"] / name
@@ -74,12 +76,23 @@ def main():
             base_report = json.loads(Path(results[baseline]["report"]).read_text())
             wav_length = base_report["runs"][-1]["wav_length"]
             base_audio = np.fromfile(Path(results[baseline]["report"]).parent / "audio.raw", np.float32)[:wav_length]
+            base_timing = base_report["runs"][-1]
+            base_latent = np.fromfile(Path(results[baseline]["report"]).parent / "latent.raw", np.float32).reshape(
+                1, -1, base_timing["bucket_length"])[..., :base_timing["latent_length"]]
             for name, result in results.items():
                 if result["warm"]:
                     result["latency_reduction_percent"] = 100 * (1 - result["warm"]["synthesis_ms_median"] / base_ms)
                     audio = np.fromfile(Path(result["report"]).parent / "audio.raw", np.float32)[:wav_length]
                     result["waveform_vs_baseline"] = metrics(audio, base_audio)
                     result["bit_exact_with_baseline"] = bool(np.array_equal(audio, base_audio))
+                    candidate = json.loads(Path(result["report"]).read_text())
+                    timing = candidate["runs"][-1]
+                    latent = np.fromfile(Path(result["report"]).parent / "latent.raw", np.float32).reshape(
+                        1, -1, timing["bucket_length"])[..., :timing["latent_length"]]
+                    result["flow_vs_baseline"] = metrics(latent, base_latent)
+                    result["flow_bit_exact_with_baseline"] = bool(np.array_equal(latent, base_latent))
+                    result["flow_invocations"] = timing.get("flow_invocations", args.steps)
+                    result["flow_unroll"] = timing.get("flow_unroll", 1)
         summary["cases"][case["id"]] = results
         (args.output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     summary["completed_utc"] = datetime.now(timezone.utc).isoformat()
