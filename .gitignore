@@ -1,0 +1,9 @@
+.venv/
+.deps/
+assets/
+artifacts/
+build/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.log

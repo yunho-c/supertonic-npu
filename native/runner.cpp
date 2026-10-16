@@ -1,0 +1,185 @@
+// A persistent native ARM64 host for ExecuTorch's QNN/HTP delegate.
+#include <executorch/backends/qualcomm/runtime/QnnExecuTorch.h>
+#include <executorch/extension/module/module.h>
+#include <executorch/extension/tensor/tensor.h>
+#include <executorch/runtime/backend/interface.h>
+#include <executorch/runtime/platform/runtime.h>
+#include <nlohmann/json.hpp>
+
+#include <chrono>
+#include <cmath>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+using json = nlohmann::json;
+using executorch::extension::Module;
+using executorch::extension::TensorPtr;
+using executorch::extension::make_tensor_ptr;
+using executorch::runtime::EValue;
+using executorch::runtime::Error;
+using executorch::aten::ScalarType;
+using Clock = std::chrono::steady_clock;
+
+double elapsed(Clock::time_point start) {
+  return std::chrono::duration<double, std::milli>(Clock::now() - start).count();
+}
+
+TensorPtr read_tensor(const json& spec) {
+  const auto shape = spec.at("shape").get<std::vector<int32_t>>();
+  size_t count = 1;
+  for (auto size : shape) {
+    if (size <= 0) throw std::runtime_error("Invalid input shape");
+    count *= size;
+  }
+  const auto dtype = spec.at("dtype").get<std::string>();
+  if (dtype != "float32" && dtype != "int64")
+    throw std::runtime_error("Unsupported input dtype: " + dtype);
+  const auto bytes = count * (dtype == "float32" ? sizeof(float) : sizeof(int64_t));
+  auto data = std::make_shared<std::vector<uint8_t>>(bytes);
+  std::ifstream stream(spec.at("path").get<std::string>(), std::ios::binary);
+  if (!stream.read(reinterpret_cast<char*>(data->data()), bytes) || stream.peek() != EOF)
+    throw std::runtime_error("Input size mismatch: " + spec.at("path").get<std::string>());
+  return make_tensor_ptr(shape, data->data(),
+      dtype == "float32" ? ScalarType::Float : ScalarType::Long,
+      executorch::aten::Device(executorch::aten::DeviceType::CPU),
+      executorch::aten::TensorShapeDynamism::STATIC,
+      [data](void*) {});
+}
+
+void write_tensor(const TensorPtr& tensor, const std::filesystem::path& path) {
+  std::ofstream stream(path, std::ios::binary);
+  stream.write(static_cast<const char*>(tensor->const_data_ptr()), tensor->nbytes());
+  if (!stream) throw std::runtime_error("Failed to write " + path.string());
+}
+
+class Runner {
+  std::filesystem::path models_;
+  std::map<std::string, std::unique_ptr<Module>> modules_;
+ public:
+  explicit Runner(std::filesystem::path models) : models_(std::move(models)) {}
+
+  Module& load(const std::string& name, json& timings) {
+    if (name != "duration_predictor" && name != "text_encoder" &&
+        name != "vector_estimator" && name != "vocoder")
+      throw std::runtime_error("Unknown component: " + name);
+    if (!modules_.count(name)) {
+      const auto start = Clock::now();
+      auto module = std::make_unique<Module>((models_ / (name + ".pte")).string());
+      const auto error = module->load_forward();
+      if (error != Error::Ok)
+        throw std::runtime_error("Loading " + name + " failed: " + std::to_string(int(error)));
+      modules_[name] = std::move(module);
+      timings[name + "_load_ms"] = elapsed(start);
+    }
+    return *modules_.at(name);
+  }
+
+  TensorPtr run(const std::string& name, const std::vector<TensorPtr>& inputs, json& timings) {
+    auto& module = load(name, timings);
+    std::vector<EValue> values;
+    for (const auto& input : inputs) values.emplace_back(*input);
+    const auto start = Clock::now();
+    auto result = module.forward(values);
+    const auto ms = elapsed(start);
+    if (!result.ok())
+      throw std::runtime_error("Executing " + name + " failed: " + std::to_string(int(result.error())));
+    timings[name + "_ms"].push_back(ms);
+    const auto& tensor = result->at(0).toTensor();
+    if (tensor.scalar_type() != ScalarType::Float)
+      throw std::runtime_error("Expected float32 model output");
+    std::vector<float> data(tensor.const_data_ptr<float>(), tensor.const_data_ptr<float>() + tensor.numel());
+    std::vector<int32_t> sizes(tensor.sizes().begin(), tensor.sizes().end());
+    return make_tensor_ptr(std::move(sizes), std::move(data));
+  }
+
+  json request(const json& request) {
+    json timings = json::object();
+    const auto start = Clock::now();
+    if (request.at("command") == "infer") {
+      std::vector<TensorPtr> inputs;
+      for (const auto& spec : request.at("inputs")) inputs.push_back(read_tensor(spec));
+      TensorPtr output;
+      const auto name = request.at("component").get<std::string>();
+      const int count = request.value("repeat", 1);
+      if (count < 1 || count > 1000) throw std::runtime_error("Invalid repeat count");
+      for (int i = 0; i < count; ++i) output = run(name, inputs, timings);
+      write_tensor(output, request.at("output").get<std::string>());
+    } else if (request.at("command") == "synthesize") {
+      // Keep all four modules loaded and the flow loop inside this process.
+      for (const auto* name : {"duration_predictor", "text_encoder", "vector_estimator", "vocoder"})
+        load(name, timings);
+      std::map<std::string, TensorPtr> inputs;
+      for (auto it = request.at("inputs").begin(); it != request.at("inputs").end(); ++it)
+        inputs[it.key()] = read_tensor(it.value());
+      const auto out_dir = std::filesystem::path(request.at("output_dir").get<std::string>());
+      std::filesystem::create_directories(out_dir);
+      const auto inference_start = Clock::now();
+      const auto duration = run("duration_predictor", {inputs.at("text_ids"), inputs.at("style_dp"), inputs.at("text_mask")}, timings);
+      const float speed = request.value("speed", 1.05f);
+      const float seconds = duration->const_data_ptr<float>()[0] / speed;
+      if (!std::isfinite(seconds) || seconds <= 0 || speed <= 0)
+        throw std::runtime_error("Invalid predicted duration or speed");
+      const int sample_rate = request.at("sample_rate");
+      const int chunk = request.at("samples_per_latent");
+      const int wav_length = static_cast<int>(seconds * sample_rate);
+      const int latent_length = (wav_length + chunk - 1) / chunk;
+      auto latent = inputs.at("noise");
+      const int capacity = latent->size(2);
+      if (latent_length > capacity)
+        throw std::runtime_error("Speech exceeds compiled latent capacity; shorten text or export a larger bucket");
+      auto mask = make_tensor_ptr({1, 1, capacity}, std::vector<float>(capacity, 0));
+      for (int t = 0; t < latent_length; ++t) mask->mutable_data_ptr<float>()[t] = 1;
+      for (int c = 0; c < latent->size(1); ++c)
+        for (int t = latent_length; t < capacity; ++t)
+          latent->mutable_data_ptr<float>()[c * capacity + t] = 0;
+      const auto embedding = run("text_encoder", {inputs.at("text_ids"), inputs.at("style_ttl"), inputs.at("text_mask")}, timings);
+      const int steps = request.value("steps", 5);
+      if (steps < 1 || steps > 100) throw std::runtime_error("Invalid flow step count");
+      auto current = make_tensor_ptr({1}, std::vector<float>{0});
+      auto total = make_tensor_ptr({1}, std::vector<float>{float(steps)});
+      for (int step = 0; step < steps; ++step) {
+        current->mutable_data_ptr<float>()[0] = float(step);
+        latent = run("vector_estimator", {latent, embedding, inputs.at("style_ttl"), mask, inputs.at("text_mask"), current, total}, timings);
+      }
+      const auto audio = run("vocoder", {latent}, timings);
+      timings["inference_ms"] = elapsed(inference_start);
+      write_tensor(duration, out_dir / "duration.raw");
+      write_tensor(embedding, out_dir / "text_emb.raw");
+      write_tensor(latent, out_dir / "latent.raw");
+      write_tensor(audio, out_dir / "audio.raw");
+      timings["duration_seconds"] = seconds;
+      timings["wav_length"] = wav_length;
+      timings["latent_length"] = latent_length;
+      timings["rtf"] = timings["inference_ms"].get<double>() / (seconds * 1000);
+    } else {
+      throw std::runtime_error("Unknown command");
+    }
+    timings["request_ms"] = elapsed(start);
+    return {{"ok", true}, {"timings", timings}};
+  }
+};
+
+int main(int argc, char** argv) {
+  if (argc != 2) {
+    std::cerr << "Usage: supertonic_qnn <model-directory>\n";
+    return 2;
+  }
+  executorch::runtime::runtime_init();
+  QnnExecuTorchBackendRegister(reinterpret_cast<void*>(&executorch::runtime::register_backend));
+  Runner runner(argv[1]);
+  std::string line;
+  while (std::getline(std::cin, line)) {
+    try {
+      std::cout << runner.request(json::parse(line)).dump() << std::endl;
+    } catch (const std::exception& error) {
+      std::cout << json({{"ok", false}, {"error", error.what()}}).dump() << std::endl;
+    }
+  }
+}
