@@ -15,8 +15,10 @@ from qnn_runtime import ROOT, metrics
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--variant", action="append", required=True, help="NAME=MODEL_DIRECTORY; first is baseline")
+    parser.add_argument("--runner", action="append", default=[], help="NAME=EXECUTABLE; optional native runner per variant")
     parser.add_argument("--case", action="append")
     parser.add_argument("--steps", type=int, default=8)
+    parser.add_argument("--speed", type=float, default=1.05)
     parser.add_argument("--repeat", type=int, default=10)
     parser.add_argument("--output", type=Path, default=ROOT / "artifacts/optimization/qualification")
     parser.add_argument("--timing-only", action="store_true")
@@ -26,6 +28,9 @@ def main():
     if args.repeat < 3:
         parser.error("At least three requests are required")
     variants = dict(item.split("=", 1) for item in args.variant)
+    runners = dict(item.split("=", 1) for item in args.runner)
+    if set(runners) - set(variants):
+        parser.error("Runner names must match a variant")
     baseline = next(iter(variants))
     cases = json.loads((ROOT / "scripts/optimization_cases.json").read_text(encoding="utf-8"))["qualification"]
     if args.case:
@@ -33,7 +38,8 @@ def main():
         if len(cases) != len(set(args.case)):
             parser.error("Unknown qualification case")
     args.output.mkdir(parents=True, exist_ok=True)
-    summary = {"started_utc": datetime.now(timezone.utc).isoformat(), "steps": args.steps, "seed": args.seed,
+    summary = {"started_utc": datetime.now(timezone.utc).isoformat(), "steps": args.steps, "speed": args.speed, "seed": args.seed,
+               "runners": runners,
                "requests_per_case": args.repeat, "warm_requests_per_case": args.repeat - 1,
                "noise": "Identical seed at base capacity 128, cropped per channel by native runner",
                "timing": "Warm native synthesis; excludes loading, Python preprocessing and file I/O; profile collection disabled",
@@ -54,7 +60,9 @@ def main():
             report_path.unlink(missing_ok=True)
             command = [sys.executable, str(ROOT / "scripts/synthesize.py"), "--models", models, "--output", str(output),
                        "--text", case["text"], "--voice", case["voice"], "--lang", case["lang"], "--steps", str(args.steps),
-                       "--repeat", str(args.repeat), "--seed", str(args.seed)]
+                       "--repeat", str(args.repeat), "--seed", str(args.seed), "--speed", str(args.speed)]
+            if name in runners:
+                command.extend(["--runner", runners[name]])
             if not args.timing_only:
                 command.append("--compare")
             with (output / "run.log").open("w", encoding="utf-8") as log:

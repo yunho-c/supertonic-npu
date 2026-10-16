@@ -69,12 +69,12 @@ def runtime_environment(sdk: Path = DEFAULT_SDK):
 
 
 class NativeRunner:
-    def __init__(self, models: Path, log: Path, sdk: Path = DEFAULT_SDK):
+    def __init__(self, models: Path, log: Path, sdk: Path = DEFAULT_SDK, executable: Path | None = None):
         env = runtime_environment(sdk)
         log.parent.mkdir(parents=True, exist_ok=True)
         self.log = log.open("w", encoding="utf-8")
         self.process = subprocess.Popen(
-            [str(ROOT / "build/runner/Release/supertonic_qnn.exe"), str(models.resolve())],
+            [str((executable or ROOT / "build/runner/Release/supertonic_qnn.exe").resolve()), str(models.resolve())],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.log,
             text=True, encoding="utf-8", env=env,
         )

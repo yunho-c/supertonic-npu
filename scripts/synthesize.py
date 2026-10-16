@@ -82,6 +82,7 @@ def main():
     parser.add_argument("--trace", action="store_true", help="Write a Perfetto host-call timeline (not HTP hardware activity)")
     parser.add_argument("--assets", type=Path, default=ROOT / "assets")
     parser.add_argument("--models", type=Path, default=ROOT / "artifacts/qnn")
+    parser.add_argument("--runner", type=Path, help="Native executable; defaults to the current ARM64 build")
     parser.add_argument("--output", type=Path, default=ROOT / "artifacts/speech")
     args = parser.parse_args()
     if args.repeat < 1 or not 1 <= args.steps <= 100 or not np.isfinite(args.speed) or args.speed <= 0:
@@ -118,7 +119,7 @@ def main():
               "models": str(args.models.resolve()), "noise_length": latent_length,
               "model_configuration": model_configuration(args.models),
               "steps": args.steps, "speed": args.speed, "sample_rate": sample_rate, "runs": []}
-    with NativeRunner(args.models, args.output / "htp.log") as runner:
+    with NativeRunner(args.models, args.output / "htp.log", executable=args.runner) as runner:
         for i in range(args.repeat):
             timing = runner.request(request)
             report["runs"].append(timing)

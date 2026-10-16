@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "track": "exact-execution",
+  "cases": ["en-main", "en-short", "ko", "es", "fr", "pt", "en-long"],
+  "seeds": [42, 43],
+  "steps": 8,
+  "speed": 1.05,
+  "quality_requests": 3,
+  "timing_requests": 16,
+  "timing_rounds": 3,
+  "minimum_gain": 0.03,
+  "maximum_case_regression": 0.05,
+  "maximum_p90_regression": 0.10,
+  "maximum_program_size_ratio": 1.25,
+  "stage_relative_l2_max": 0.05,
+  "final_latent_relative_l2_max": 0.05,
+  "spectral_convergence_max": 0.10,
+  "build_timeout_seconds": 1800,
+  "quality_timeout_seconds": 900,
+  "timing_timeout_seconds": 300,
+  "settle_seconds": 2
+}

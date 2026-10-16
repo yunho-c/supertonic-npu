@@ -283,6 +283,25 @@ The exact measurements and paired audio are in:
 
 Reproduce the main measurement with `python scripts/synthesize.py --compare --repeat 10`.
 
+## Autonomous inference experiments
+
+[research/program.md](research/program.md) adapts Karpathy's autoresearch loop
+for controlled TTS inference experiments on O16W. The upstream project remains
+unchanged in `external/autoresearch`. Our initial track preserves baseline audio
+and final latents exactly, freezes the evaluation inputs, and separates ONNX
+checks from repeated native timing rounds. Noisy results are inconclusive.
+
+```powershell
+python research/run.py init --campaign artifacts/research/oct16 --baseline artifacts/optimized
+python research/run.py run --campaign artifacts/research/oct16 --candidate artifacts/optimized --tag control --description 'Baseline self-comparison'
+```
+
+Read the guide before starting a campaign. The runner preserves a baseline
+executable, checks model and evaluator hashes, and records decisions in the
+campaign's `results.tsv` and per-trial `result.json`. It does not change Git state
+or launch an open-ended optimization loop. Existing absolute accuracy failures
+remain visible; passing this screen does not establish perceptual speech quality.
+
 ## Upstream sources
 
 - [ExecuTorch Supertonic implementation](https://github.com/pytorch/executorch/tree/v1.5.0/examples/models/supertonic), initially contributed by [Young Han (@seyeong-han)](https://github.com/pytorch/executorch/pull/22063).
