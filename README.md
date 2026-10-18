@@ -122,6 +122,59 @@ At **five steps**, both original English cases pass the numerical screen with th
 
 Full measurements and paired WAVs are in `artifacts/optimization/final-8steps/`. The conservative main-sentence audio is `en-main/conservative/supertonic_htp.wav`, beside `onnx_reference.wav`. A [repository evidence snapshot](benchmarks/optimization-2026-10-15.json) retains measurements, failures, profiles, and SHA256 hashes for the tested programs. `scripts/summarize_optimizations.py` regenerates it from the local reports. Keep the explicit original-model command above when comparing future changes.
 
+## Superfast eight-step preset
+
+`artifacts/superfast` combines the frontend `pack8-norm-tail` winner, the
+`full28-mlp-only` flow winner, and the combined vocoder winner. All 28 flow MLPs
+are packed; the first 24 also use packed normalization/tail processing. The
+five-block CFG prefix is shared and temporal boundaries use the gather rewrite.
+The channel-last vocoder adds direct PReLU and folded input/channel scales.
+Precision remains FP16 with exact GELU and **eight separate flow evaluations**.
+
+The builder references the existing compiled research artifacts in place and
+checks model identities, program hashes, tensor interfaces and full HTP
+delegation. It does not require recompilation or duplicate model files. Keep the
+referenced research worktree artifact directories available.
+
+```powershell
+# Assemble once; use --output with a fresh directory to create another copy.
+python scripts/build_superfast.py
+python scripts/synthesize.py --models artifacts/superfast --steps 8 --repeat 16 --output artifacts/speech-superfast
+```
+
+This opt-in experimental preset currently supports **128 text tokens and the
+96-frame audio bucket only**, retaining the original 128-frame noise generation.
+Audio exceeding that bucket is rejected. The other presets remain available.
+Human listening is still required to assess the combined numerical changes.
+
+The combined measurement, all timing rounds, quality diagnostics and paired
+samples are recorded in [the October 18 results](benchmarks/superfast-2026-10-18.json)
+and [the listening page](artifacts/superfast-oct18/listening.html).
+The benchmark compares the complete preset with the same full28 flow and winning
+vocoder using original frontends. Timing excludes loading, Python preprocessing
+and tensor file I/O; native request timing including file I/O is recorded separately.
+
+October 18 measurements (three paired rounds, 15 warm requests per slot):
+
+| Case | Vocoder-winner baseline | Superfast | Superfast RTF |
+| --- | ---: | ---: | ---: |
+| English M1 | 102.88 ms | 96.16 ms | 0.01668 |
+| Korean F2 | 99.03 ms | 109.78 ms | 0.02031 |
+
+This session **did not establish a whole-pipeline speedup**: aggregate latency
+was 4.57% higher, with maximum baseline drift of 13.14%. Even the unchanged
+control was noisy and slower than the October 16 measurements. Frontend stage
+medians improved, but flow/vocoder timing varied substantially. A post-timing
+system snapshot recorded 37% CPU load; it does not identify the cause of the
+earlier timing variation. Every round is retained, with no favorable reruns.
+The 0.01 RTF target was not reached.
+
+Six paired quality cases, including Portuguese M1 seeds 303/404, retained the
+same 2.00% WER and 0.408% CER as the baseline and original FP32 references.
+Maximum common-prefix spectral difference from the baseline was 8.99%; maximum
+duration change was 0.224%. These are diagnostics, not perceptual certification.
+The listening page contains the actual combined outputs and matched references.
+
 ## Grouped flow experiments
 
 `scripts/export_flow.py` exports 1, 2, 4 or 8 consecutive flow steps as one QNN graph. The initial measurements below use the original convolution layout, exact GELU and FP16; they target a fixed eight-step synthesis schedule. `plainN` only groups calls. `reuseN` also computes text/style attention keys, values and mask-dependent rotary terms once per group. `specialN` additionally precomputes the time encoder and each block's time projection in FP32. The latter can change device rounding and needs separate numerical qualification.
