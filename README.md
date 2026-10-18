@@ -175,6 +175,16 @@ Maximum common-prefix spectral difference from the baseline was 8.99%; maximum
 duration change was 0.224%. These are diagnostics, not perceptual certification.
 The listening page contains the actual combined outputs and matched references.
 
+A user-requested repeat after disconnecting RDP retained the same programs,
+inputs, control and three paired rounds. English baseline/Superfast medians were
+108.10/109.96 ms (Superfast RTF 0.01907); Korean was 96.55/95.12 ms (RTF 0.01760).
+The aggregate 1.55% reduction was below 21.89% maximum baseline drift, so this
+repeat also did not establish a reliable speedup. All 90 checked audio/latent/
+frontend output files matched the original quality samples byte-for-byte.
+The original batch remains intact; this is an environment-change comparison,
+not an isolated causal test of RDP. See the [repeat results](benchmarks/superfast-oct18-rdp-off.json)
+and [repeat harness](scripts/remeasure_superfast.py).
+
 ## Grouped flow experiments
 
 `scripts/export_flow.py` exports 1, 2, 4 or 8 consecutive flow steps as one QNN graph. The initial measurements below use the original convolution layout, exact GELU and FP16; they target a fixed eight-step synthesis schedule. `plainN` only groups calls. `reuseN` also computes text/style attention keys, values and mask-dependent rotary terms once per group. `specialN` additionally precomputes the time encoder and each block's time projection in FP32. The latter can change device rounding and needs separate numerical qualification.

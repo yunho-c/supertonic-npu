@@ -1,0 +1,437 @@
+{
+  "completed_utc": "2026-10-18T18:55:42.630501+00:00",
+  "reason": "User requested a new measurement after disconnecting RDP",
+  "scope": {
+    "created_utc": "2026-10-18T18:54:20.438378+00:00",
+    "candidate": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast",
+    "baseline": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-vocoder-oct16\\artifacts\\vocoder-head-oct16\\bundles\\combined",
+    "steps": 8,
+    "speed": 1.05,
+    "noise_capacity": 128,
+    "text_capacity": 128,
+    "audio_bucket": 96,
+    "timing_cases": [
+      {
+        "id": "en-main",
+        "lang": "en",
+        "voice": "M1",
+        "text": "Hello! This is Supertonic running on the Qualcomm neural processing unit.",
+        "seed": 42
+      },
+      {
+        "id": "ko",
+        "lang": "ko",
+        "voice": "F2",
+        "text": "안녕하세요. 퀄컴 신경망 프로세서에서 음성을 만들고 있습니다.",
+        "seed": 42
+      }
+    ],
+    "quality_cases": [
+      {
+        "id": "en-main",
+        "lang": "en",
+        "voice": "M1",
+        "text": "Hello! This is Supertonic running on the Qualcomm neural processing unit.",
+        "seed": 42
+      },
+      {
+        "id": "ko",
+        "lang": "ko",
+        "voice": "F2",
+        "text": "안녕하세요. 퀄컴 신경망 프로세서에서 음성을 만들고 있습니다.",
+        "seed": 42
+      },
+      {
+        "id": "es",
+        "lang": "es",
+        "voice": "M3",
+        "text": "Hola, esta voz se genera directamente en mi ordenador.",
+        "seed": 42
+      },
+      {
+        "id": "fr",
+        "lang": "fr",
+        "voice": "F4",
+        "text": "Bonjour, cette voix fonctionne sur mon ordinateur.",
+        "seed": 42
+      },
+      {
+        "id": "confirm-pt-m1",
+        "lang": "pt",
+        "voice": "M1",
+        "text": "Por favor, coloque os livros perto da janela.",
+        "seed": 303
+      },
+      {
+        "id": "confirm-pt-m1",
+        "lang": "pt",
+        "voice": "M1",
+        "text": "Por favor, coloque os livros perto da janela.",
+        "seed": 404
+      }
+    ],
+    "rounds": 3,
+    "requests": 16,
+    "discard": 1,
+    "order": "baseline-before, candidate, baseline-after; case order reversed in odd rounds",
+    "control": "one unchanged-baseline bracket per timing case before candidate measurements",
+    "reruns": "One explicitly requested new batch; original retained. No within-batch retries or best-of selection.",
+    "gain_rule": "Positive reduction in each round and aggregate reduction above maximum local/inter-round baseline drift. Descriptive repeatability heuristic, not statistical proof.",
+    "quality": "Six paired cases; finite/non-silent/clipping checks, common-prefix spectral diagnostics without time warping, full WAV ASR. No strict numerical gate; human listening pending.",
+    "reference": "Reuse original FP32 text/flow/vocoder teachers only after checking complete raw inputs, HTP duration, latent length, crop and asset identities. Each role uses its own HTP duration; differences are reported.",
+    "timing_scope": "Warm native inference excludes model loading, Python preprocessing and tensor file IO; native request includes tensor IO.",
+    "asr": {
+      "model": "Whisper-small",
+      "device": "cpu",
+      "compute_type": "int8_float32",
+      "threads": 2
+    },
+    "target_rtf": 0.01,
+    "reason": "User requested a new measurement after disconnecting RDP",
+    "previous_campaign": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18"
+  },
+  "cases": {
+    "en-main": {
+      "baseline_ms": 108.0967,
+      "candidate_ms": 109.9631,
+      "candidate_p90_ms": 118.68208000000001,
+      "baseline_p90_ms": 125.00322,
+      "candidate_request_ms": 113.468,
+      "baseline_request_ms": 111.47229999999999,
+      "audio_seconds": 5.766349206349206,
+      "baseline_audio_seconds": 5.770068027210884,
+      "inference_rtf": 0.019069795474565075,
+      "baseline_duration_rtf": 0.019057504951662342,
+      "request_rtf": 0.01967761506276151,
+      "gain_percent": -1.3793718260173726,
+      "interround_baseline_drift_percent": 11.553773971196923,
+      "stage_ms": {
+        "duration_predictor": {
+          "baseline": 3.9769,
+          "candidate": 1.2634
+        },
+        "text_encoder": {
+          "baseline": 4.404,
+          "candidate": 3.5939
+        },
+        "vector_estimator": {
+          "baseline": 85.8892,
+          "candidate": 92.545
+        },
+        "vocoder": {
+          "baseline": 6.878450000000001,
+          "candidate": 7.9811
+        }
+      }
+    },
+    "ko": {
+      "baseline_ms": 96.55375000000001,
+      "candidate_ms": 95.12140000000001,
+      "candidate_p90_ms": 117.48992,
+      "baseline_p90_ms": 120.63943,
+      "candidate_request_ms": 97.7321,
+      "baseline_request_ms": 101.03175,
+      "audio_seconds": 5.405487528344671,
+      "baseline_audio_seconds": 5.409206349206349,
+      "inference_rtf": 0.01759719165037629,
+      "baseline_duration_rtf": 0.01758509360877986,
+      "request_rtf": 0.01808016381270398,
+      "gain_percent": 4.401053114127073,
+      "interround_baseline_drift_percent": 10.08543985268453,
+      "stage_ms": {
+        "duration_predictor": {
+          "baseline": 3.5968,
+          "candidate": 1.2483
+        },
+        "text_encoder": {
+          "baseline": 4.49245,
+          "candidate": 3.5978
+        },
+        "vector_estimator": {
+          "baseline": 77.24185,
+          "candidate": 84.9596
+        },
+        "vocoder": {
+          "baseline": 6.1983,
+          "candidate": 7.4884
+        }
+      }
+    }
+  },
+  "gain_percent": 1.5532571259028516,
+  "round_gains_percent": [
+    -1.1994504607248269,
+    4.927492206965168,
+    0.8321375651741625
+  ],
+  "max_local_bracket_drift_percent": 21.888624176970993,
+  "max_drift_percent": 21.888624176970993,
+  "repeatable_gain": false,
+  "target_rtf_met_every_case_round": false,
+  "timing_outputs_bit_exact_to_previous_quality": true,
+  "previous_quality": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality.json",
+  "previous_asr": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\asr.json",
+  "quality_note": "Same compiled programs; EN/KO timing outputs match prior quality byte-for-byte. Six-case ASR was not rerun.",
+  "causality": "RDP disconnection was user-reported. This before/after comparison does not isolate RDP from every other system change.",
+  "source_manifest_sha256": "b1bbc74f8a45be5644070d07d446f8c8a8cc361fc7b48690fd545bb8c4700c5f",
+  "timing_rounds": [
+    {
+      "round": 0,
+      "case": "en-main",
+      "baseline_before_ms": 102.50750000000001,
+      "baseline_after_ms": 113.68589999999999,
+      "baseline_ms": 108.0967,
+      "candidate_ms": 112.3724,
+      "ratio": 1.039554398977952,
+      "bracket_drift": 0.10904958173792134,
+      "candidate_p90_ms": 120.104,
+      "baseline_p90_ms": 136.54845999999998,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.2634,
+        "text_encoder": 3.5939,
+        "vector_estimator": 94.5407,
+        "vocoder": 8.0924
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 5.4826,
+        "text_encoder": 4.4325,
+        "vector_estimator": 89.3297,
+        "vocoder": 6.878450000000001
+      },
+      "audio_seconds": 5.766349206349206,
+      "baseline_audio_seconds": 5.770068027210884,
+      "candidate_request_ms": 115.9214,
+      "candidate_request_p90_ms": 123.5156,
+      "baseline_request_ms": 111.47229999999999,
+      "inference_rtf": 0.019487616163840565,
+      "baseline_duration_rtf": 0.01947505635463334,
+      "request_rtf": 0.020103083571900465
+    },
+    {
+      "round": 0,
+      "case": "ko",
+      "baseline_before_ms": 104.1357,
+      "baseline_after_ms": 88.9718,
+      "baseline_ms": 96.55375000000001,
+      "candidate_ms": 95.12140000000001,
+      "ratio": 0.9851652576932538,
+      "bracket_drift": 0.1456167289411796,
+      "candidate_p90_ms": 117.48992,
+      "baseline_p90_ms": 114.93364,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.2982,
+        "text_encoder": 3.8665,
+        "vector_estimator": 84.9596,
+        "vocoder": 6.412
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.7259,
+        "text_encoder": 4.49245,
+        "vector_estimator": 76.58449999999999,
+        "vocoder": 6.0273
+      },
+      "audio_seconds": 5.405487528344671,
+      "baseline_audio_seconds": 5.409206349206349,
+      "candidate_request_ms": 97.7321,
+      "candidate_request_p90_ms": 121.51407999999999,
+      "baseline_request_ms": 99.5609,
+      "inference_rtf": 0.01759719165037629,
+      "baseline_duration_rtf": 0.01758509360877986,
+      "request_rtf": 0.01808016381270398
+    },
+    {
+      "round": 1,
+      "case": "ko",
+      "baseline_before_ms": 108.3489,
+      "baseline_after_ms": 103.2799,
+      "baseline_ms": 105.8144,
+      "candidate_ms": 97.01660000000001,
+      "ratio": 0.9168563068920677,
+      "bracket_drift": 0.04678404672313241,
+      "candidate_p90_ms": 120.95769999999999,
+      "baseline_p90_ms": 127.88589999999999,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.2483,
+        "text_encoder": 3.5978,
+        "vector_estimator": 86.8586,
+        "vocoder": 8.6148
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.5208,
+        "text_encoder": 4.63615,
+        "vector_estimator": 81.9402,
+        "vocoder": 9.418050000000001
+      },
+      "audio_seconds": 5.405487528344671,
+      "baseline_audio_seconds": 5.409206349206349,
+      "candidate_request_ms": 100.8168,
+      "candidate_request_p90_ms": 124.76346,
+      "baseline_request_ms": 108.25450000000001,
+      "inference_rtf": 0.01794779832369894,
+      "baseline_duration_rtf": 0.017935459240565763,
+      "request_rtf": 0.018650824642800212
+    },
+    {
+      "round": 1,
+      "case": "en-main",
+      "baseline_before_ms": 87.39059999999999,
+      "baseline_after_ms": 106.5192,
+      "baseline_ms": 96.9549,
+      "candidate_ms": 95.5825,
+      "ratio": 0.9858449650301325,
+      "bracket_drift": 0.21888624176970994,
+      "candidate_p90_ms": 118.68208000000001,
+      "baseline_p90_ms": 115.12447,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.2523,
+        "text_encoder": 3.4446,
+        "vector_estimator": 82.1497,
+        "vocoder": 7.9811
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.9769,
+        "text_encoder": 4.383,
+        "vector_estimator": 78.24695,
+        "vocoder": 6.550800000000001
+      },
+      "audio_seconds": 5.766349206349206,
+      "baseline_audio_seconds": 5.770068027210884,
+      "candidate_request_ms": 98.153,
+      "candidate_request_p90_ms": 121.54958,
+      "baseline_request_ms": 101.0709,
+      "inference_rtf": 0.016575912519268883,
+      "baseline_duration_rtf": 0.016565229309125205,
+      "request_rtf": 0.017021688504734643
+    },
+    {
+      "round": 2,
+      "case": "en-main",
+      "baseline_before_ms": 114.4917,
+      "baseline_after_ms": 101.82199999999999,
+      "baseline_ms": 108.15684999999999,
+      "candidate_ms": 109.9631,
+      "ratio": 1.01670028296867,
+      "bracket_drift": 0.11066042341933957,
+      "candidate_p90_ms": 118.65306000000001,
+      "baseline_p90_ms": 125.00322,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.3296,
+        "text_encoder": 3.7057,
+        "vector_estimator": 92.545,
+        "vocoder": 7.1421
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.5391500000000002,
+        "text_encoder": 4.404,
+        "vector_estimator": 85.8892,
+        "vocoder": 7.978250000000001
+      },
+      "audio_seconds": 5.766349206349206,
+      "baseline_audio_seconds": 5.770068027210884,
+      "candidate_request_ms": 113.468,
+      "candidate_request_p90_ms": 122.55218,
+      "baseline_request_ms": 113.44839999999999,
+      "inference_rtf": 0.019069795474565075,
+      "baseline_duration_rtf": 0.019057504951662342,
+      "request_rtf": 0.01967761506276151
+    },
+    {
+      "round": 2,
+      "case": "ko",
+      "baseline_before_ms": 98.1952,
+      "baseline_after_ms": 94.0453,
+      "baseline_ms": 96.12025,
+      "candidate_ms": 92.9745,
+      "ratio": 0.9672727651041274,
+      "bracket_drift": 0.04226173988137916,
+      "candidate_p90_ms": 112.73838,
+      "baseline_p90_ms": 120.63943,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.2241,
+        "text_encoder": 3.2609,
+        "vector_estimator": 75.6044,
+        "vocoder": 7.4884
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.5968,
+        "text_encoder": 4.357200000000001,
+        "vector_estimator": 77.24185,
+        "vocoder": 6.1983
+      },
+      "audio_seconds": 5.405487528344671,
+      "baseline_audio_seconds": 5.409206349206349,
+      "candidate_request_ms": 95.6709,
+      "candidate_request_p90_ms": 116.25883999999999,
+      "baseline_request_ms": 101.03175,
+      "inference_rtf": 0.01720002118448541,
+      "baseline_duration_rtf": 0.017188196196959916,
+      "request_rtf": 0.017698847605943403
+    }
+  ],
+  "control": [
+    {
+      "round": 0,
+      "case": "en-main",
+      "baseline_before_ms": 99.1318,
+      "baseline_after_ms": 85.8574,
+      "baseline_ms": 92.49459999999999,
+      "candidate_ms": 94.91810000000001,
+      "ratio": 1.0262015296028095,
+      "bracket_drift": 0.13390657690065144,
+      "candidate_p90_ms": 115.18499999999999,
+      "baseline_p90_ms": 118.64111,
+      "candidate_stage_ms": {
+        "duration_predictor": 3.4926,
+        "text_encoder": 4.1636,
+        "vector_estimator": 74.7186,
+        "vocoder": 5.3349
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.4919000000000002,
+        "text_encoder": 4.2795,
+        "vector_estimator": 75.1584,
+        "vocoder": 7.04565
+      },
+      "audio_seconds": 5.770068027210884,
+      "baseline_audio_seconds": 5.770068027210884,
+      "candidate_request_ms": 97.7904,
+      "candidate_request_p90_ms": 117.48232,
+      "baseline_request_ms": 94.88974999999999,
+      "inference_rtf": 0.016450083352982786,
+      "baseline_duration_rtf": 0.016450083352982786,
+      "request_rtf": 0.01694787644423485
+    },
+    {
+      "round": 0,
+      "case": "ko",
+      "baseline_before_ms": 92.76339999999999,
+      "baseline_after_ms": 97.09179999999999,
+      "baseline_ms": 94.92759999999998,
+      "candidate_ms": 115.1581,
+      "ratio": 1.2131150476784416,
+      "bracket_drift": 0.04666064417647475,
+      "candidate_p90_ms": 124.27646,
+      "baseline_p90_ms": 119.41076,
+      "candidate_stage_ms": {
+        "duration_predictor": 3.7725,
+        "text_encoder": 4.589,
+        "vector_estimator": 93.1339,
+        "vocoder": 6.9473
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.4837999999999996,
+        "text_encoder": 4.2303,
+        "vector_estimator": 75.1515,
+        "vocoder": 8.071850000000001
+      },
+      "audio_seconds": 5.409206349206349,
+      "baseline_audio_seconds": 5.409206349206349,
+      "candidate_request_ms": 117.7009,
+      "candidate_request_p90_ms": 127.82198,
+      "baseline_request_ms": 97.63495,
+      "inference_rtf": 0.02128927842009508,
+      "baseline_duration_rtf": 0.02128927842009508,
+      "request_rtf": 0.021759365866541466
+    }
+  ]
+}
