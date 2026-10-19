@@ -1,0 +1,715 @@
+{
+  "completed_utc": "2026-10-18T18:37:55.498041+00:00",
+  "scope": {
+    "created_utc": "2026-10-18T18:31:44.948694+00:00",
+    "candidate": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast",
+    "baseline": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-vocoder-oct16\\artifacts\\vocoder-head-oct16\\bundles\\combined",
+    "steps": 8,
+    "speed": 1.05,
+    "noise_capacity": 128,
+    "text_capacity": 128,
+    "audio_bucket": 96,
+    "timing_cases": [
+      {
+        "id": "en-main",
+        "lang": "en",
+        "voice": "M1",
+        "text": "Hello! This is Supertonic running on the Qualcomm neural processing unit.",
+        "seed": 42
+      },
+      {
+        "id": "ko",
+        "lang": "ko",
+        "voice": "F2",
+        "text": "안녕하세요. 퀄컴 신경망 프로세서에서 음성을 만들고 있습니다.",
+        "seed": 42
+      }
+    ],
+    "quality_cases": [
+      {
+        "id": "en-main",
+        "lang": "en",
+        "voice": "M1",
+        "text": "Hello! This is Supertonic running on the Qualcomm neural processing unit.",
+        "seed": 42
+      },
+      {
+        "id": "ko",
+        "lang": "ko",
+        "voice": "F2",
+        "text": "안녕하세요. 퀄컴 신경망 프로세서에서 음성을 만들고 있습니다.",
+        "seed": 42
+      },
+      {
+        "id": "es",
+        "lang": "es",
+        "voice": "M3",
+        "text": "Hola, esta voz se genera directamente en mi ordenador.",
+        "seed": 42
+      },
+      {
+        "id": "fr",
+        "lang": "fr",
+        "voice": "F4",
+        "text": "Bonjour, cette voix fonctionne sur mon ordinateur.",
+        "seed": 42
+      },
+      {
+        "id": "confirm-pt-m1",
+        "lang": "pt",
+        "voice": "M1",
+        "text": "Por favor, coloque os livros perto da janela.",
+        "seed": 303
+      },
+      {
+        "id": "confirm-pt-m1",
+        "lang": "pt",
+        "voice": "M1",
+        "text": "Por favor, coloque os livros perto da janela.",
+        "seed": 404
+      }
+    ],
+    "rounds": 3,
+    "requests": 16,
+    "discard": 1,
+    "order": "baseline-before, candidate, baseline-after; case order reversed in odd rounds",
+    "control": "one unchanged-baseline bracket per timing case before candidate measurements",
+    "reruns": "none; all attempts retained",
+    "gain_rule": "Positive reduction in each round and aggregate reduction above maximum local/inter-round baseline drift. Descriptive repeatability heuristic, not statistical proof.",
+    "quality": "Six paired cases; finite/non-silent/clipping checks, common-prefix spectral diagnostics without time warping, full WAV ASR. No strict numerical gate; human listening pending.",
+    "reference": "Reuse original FP32 text/flow/vocoder teachers only after checking complete raw inputs, HTP duration, latent length, crop and asset identities. Each role uses its own HTP duration; differences are reported.",
+    "timing_scope": "Warm native inference excludes model loading, Python preprocessing and tensor file IO; native request includes tensor IO.",
+    "asr": {
+      "model": "Whisper-small",
+      "device": "cpu",
+      "compute_type": "int8_float32",
+      "threads": 2
+    },
+    "target_rtf": 0.01
+  },
+  "cases": {
+    "en-main": {
+      "candidate_ms": 96.16319999999999,
+      "baseline_ms": 102.88085000000001,
+      "candidate_p90_ms": 115.12436,
+      "baseline_p90_ms": 125.56181000000001,
+      "candidate_request_ms": 99.7942,
+      "baseline_request_ms": 106.001,
+      "audio_seconds": 5.766349206349206,
+      "baseline_audio_seconds": 5.770068027210884,
+      "inference_rtf": 0.016676617485135433,
+      "baseline_duration_rtf": 0.016665869370431498,
+      "request_rtf": 0.01730630532922264,
+      "stage_ms": {
+        "duration_predictor": {
+          "baseline": 3.726,
+          "candidate": 1.2663
+        },
+        "text_encoder": {
+          "baseline": 4.613049999999999,
+          "candidate": 3.7988
+        },
+        "vector_estimator": {
+          "baseline": 79.91985,
+          "candidate": 80.5822
+        },
+        "vocoder": {
+          "baseline": 7.5819,
+          "candidate": 7.1607
+        }
+      },
+      "baseline_interround_drift_percent": 9.47157302460393
+    },
+    "ko": {
+      "candidate_ms": 109.7775,
+      "baseline_ms": 99.02615,
+      "candidate_p90_ms": 121.2727,
+      "baseline_p90_ms": 118.43385,
+      "candidate_request_ms": 112.773,
+      "baseline_request_ms": 101.85050000000001,
+      "audio_seconds": 5.405487528344671,
+      "baseline_audio_seconds": 5.409206349206349,
+      "inference_rtf": 0.02030852895772332,
+      "baseline_duration_rtf": 0.020294566875990377,
+      "request_rtf": 0.020862688038526398,
+      "stage_ms": {
+        "duration_predictor": {
+          "baseline": 3.49995,
+          "candidate": 1.3255
+        },
+        "text_encoder": {
+          "baseline": 4.7856000000000005,
+          "candidate": 4.2848
+        },
+        "vector_estimator": {
+          "baseline": 80.00460000000001,
+          "candidate": 93.4524
+        },
+        "vocoder": {
+          "baseline": 7.5929,
+          "candidate": 8.7382
+        }
+      },
+      "baseline_interround_drift_percent": 12.78430824377419
+    }
+  },
+  "gain_percent": -4.569995219986733,
+  "round_gains_percent": [
+    -5.728259310976269,
+    -2.5658614933719237,
+    -5.445329966361334
+  ],
+  "max_drift_percent": 13.142346773904013,
+  "repeatable_gain": false,
+  "target_rtf_met_every_case_round": false,
+  "asr": {
+    "baseline": {
+      "wer": {
+        "errors": 1,
+        "units": 50,
+        "rate": 0.02
+      },
+      "cer": {
+        "errors": 1,
+        "units": 245,
+        "rate": 0.004081632653061225
+      }
+    },
+    "candidate": {
+      "wer": {
+        "errors": 1,
+        "units": 50,
+        "rate": 0.02
+      },
+      "cer": {
+        "errors": 1,
+        "units": 245,
+        "rate": 0.004081632653061225
+      }
+    },
+    "baseline_fp32": {
+      "wer": {
+        "errors": 1,
+        "units": 50,
+        "rate": 0.02
+      },
+      "cer": {
+        "errors": 1,
+        "units": 245,
+        "rate": 0.004081632653061225
+      }
+    },
+    "candidate_fp32": {
+      "wer": {
+        "errors": 1,
+        "units": 50,
+        "rate": 0.02
+      },
+      "cer": {
+        "errors": 1,
+        "units": 245,
+        "rate": 0.004081632653061225
+      }
+    }
+  },
+  "max_paired_spectral": 0.08988671481901946,
+  "max_candidate_spectral_vs_fp32": 0.09311653249217258,
+  "max_duration_delta_percent": 0.2241309799580482,
+  "human_listening": "pending",
+  "source_manifest_sha256": "439c1661da08ef4b6a8a153c865e13676de14ffc35edcf27eecd8e4eb74ca5d5",
+  "timing_rounds": [
+    {
+      "round": 0,
+      "case": "en-main",
+      "baseline_before_ms": 93.1612,
+      "baseline_after_ms": 101.8402,
+      "baseline_ms": 97.5007,
+      "candidate_ms": 93.0454,
+      "ratio": 0.9543049434516881,
+      "bracket_drift": 0.09316110140272982,
+      "candidate_p90_ms": 115.12436,
+      "baseline_p90_ms": 121.20425,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.2562,
+        "text_encoder": 3.4814,
+        "vector_estimator": 80.5822,
+        "vocoder": 7.0862
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 4.28955,
+        "text_encoder": 5.07555,
+        "vector_estimator": 79.4247,
+        "vocoder": 7.5819
+      },
+      "audio_seconds": 5.766349206349206,
+      "baseline_audio_seconds": 5.770068027210884,
+      "candidate_request_ms": 95.6723,
+      "candidate_request_p90_ms": 117.95156,
+      "baseline_request_ms": 100.94505000000001,
+      "inference_rtf": 0.01613592876018498,
+      "baseline_duration_rtf": 0.01612552912049045,
+      "request_rtf": 0.016591485630918303
+    },
+    {
+      "round": 0,
+      "case": "ko",
+      "baseline_before_ms": 94.1822,
+      "baseline_after_ms": 103.87010000000001,
+      "baseline_ms": 99.02615,
+      "candidate_ms": 115.99650000000001,
+      "ratio": 1.1713724102168974,
+      "bracket_drift": 0.10286338607507584,
+      "candidate_p90_ms": 121.2727,
+      "baseline_p90_ms": 117.63467,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.4974,
+        "text_encoder": 5.1144,
+        "vector_estimator": 93.4524,
+        "vocoder": 9.3382
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.49995,
+        "text_encoder": 4.5322,
+        "vector_estimator": 80.00460000000001,
+        "vocoder": 7.5929
+      },
+      "audio_seconds": 5.405487528344671,
+      "baseline_audio_seconds": 5.409206349206349,
+      "candidate_request_ms": 119.0274,
+      "candidate_request_p90_ms": 124.1971,
+      "baseline_request_ms": 101.85050000000001,
+      "inference_rtf": 0.021459026478509287,
+      "baseline_duration_rtf": 0.02144427343153941,
+      "request_rtf": 0.022019734459816597
+    },
+    {
+      "round": 1,
+      "case": "ko",
+      "baseline_before_ms": 111.40400000000001,
+      "baseline_after_ms": 96.76289999999999,
+      "baseline_ms": 104.08345,
+      "candidate_ms": 109.6004,
+      "ratio": 1.0530050646860765,
+      "bracket_drift": 0.13142346773904012,
+      "candidate_p90_ms": 118.30642,
+      "baseline_p90_ms": 118.43385,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.3138,
+        "text_encoder": 3.6612,
+        "vector_estimator": 90.5744,
+        "vocoder": 6.3631
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 4.10305,
+        "text_encoder": 4.8109,
+        "vector_estimator": 80.62134999999999,
+        "vocoder": 6.1097
+      },
+      "audio_seconds": 5.405487528344671,
+      "baseline_audio_seconds": 5.409206349206349,
+      "candidate_request_ms": 112.773,
+      "candidate_request_p90_ms": 124.72808,
+      "baseline_request_ms": 107.4461,
+      "inference_rtf": 0.020275765955483215,
+      "baseline_duration_rtf": 0.02026182639826281,
+      "request_rtf": 0.020862688038526398
+    },
+    {
+      "round": 1,
+      "case": "en-main",
+      "baseline_before_ms": 109.93169999999999,
+      "baseline_after_ms": 103.5394,
+      "baseline_ms": 106.73554999999999,
+      "candidate_ms": 106.6312,
+      "ratio": 0.9990223500979759,
+      "bracket_drift": 0.0581479227556746,
+      "candidate_p90_ms": 123.35355999999999,
+      "baseline_p90_ms": 125.56181000000001,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.451,
+        "text_encoder": 3.7988,
+        "vector_estimator": 93.9124,
+        "vocoder": 7.1607
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.726,
+        "text_encoder": 4.49765,
+        "vector_estimator": 84.14885000000001,
+        "vocoder": 6.98165
+      },
+      "audio_seconds": 5.766349206349206,
+      "baseline_audio_seconds": 5.770068027210884,
+      "candidate_request_ms": 111.0349,
+      "candidate_request_p90_ms": 126.68742,
+      "baseline_request_ms": 109.46885,
+      "inference_rtf": 0.01849197753798723,
+      "baseline_duration_rtf": 0.018480059419948125,
+      "request_rtf": 0.019255666978639067
+    },
+    {
+      "round": 2,
+      "case": "en-main",
+      "baseline_before_ms": 106.2279,
+      "baseline_after_ms": 99.5338,
+      "baseline_ms": 102.88085000000001,
+      "candidate_ms": 96.16319999999999,
+      "ratio": 0.9347045635801025,
+      "bracket_drift": 0.06301640152916521,
+      "candidate_p90_ms": 112.95004,
+      "baseline_p90_ms": 128.03276,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.2663,
+        "text_encoder": 3.8849,
+        "vector_estimator": 80.026,
+        "vocoder": 8.2979
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.50495,
+        "text_encoder": 4.613049999999999,
+        "vector_estimator": 79.91985,
+        "vocoder": 8.17305
+      },
+      "audio_seconds": 5.766349206349206,
+      "baseline_audio_seconds": 5.770068027210884,
+      "candidate_request_ms": 99.7942,
+      "candidate_request_p90_ms": 115.70834,
+      "baseline_request_ms": 106.001,
+      "inference_rtf": 0.016676617485135433,
+      "baseline_duration_rtf": 0.016665869370431498,
+      "request_rtf": 0.01730630532922264
+    },
+    {
+      "round": 2,
+      "case": "ko",
+      "baseline_before_ms": 89.4445,
+      "baseline_after_ms": 95.1263,
+      "baseline_ms": 92.28540000000001,
+      "candidate_ms": 109.7775,
+      "ratio": 1.1895435247612298,
+      "bracket_drift": 0.0635231903582667,
+      "candidate_p90_ms": 123.4153,
+      "baseline_p90_ms": 118.80134000000001,
+      "candidate_stage_ms": {
+        "duration_predictor": 1.3255,
+        "text_encoder": 4.2848,
+        "vector_estimator": 96.2904,
+        "vocoder": 8.7382
+      },
+      "baseline_stage_ms": {
+        "duration_predictor": 3.47035,
+        "text_encoder": 4.7856000000000005,
+        "vector_estimator": 73.80215,
+        "vocoder": 8.21275
+      },
+      "audio_seconds": 5.405487528344671,
+      "baseline_audio_seconds": 5.409206349206349,
+      "candidate_request_ms": 112.5791,
+      "candidate_request_p90_ms": 127.15876,
+      "baseline_request_ms": 95.4168,
+      "inference_rtf": 0.02030852895772332,
+      "baseline_duration_rtf": 0.020294566875990377,
+      "request_rtf": 0.020826817083504628
+    }
+  ],
+  "quality": {
+    "complete": true,
+    "cases": [
+      {
+        "case": {
+          "id": "en-main",
+          "lang": "en",
+          "voice": "M1",
+          "text": "Hello! This is Supertonic running on the Qualcomm neural processing unit.",
+          "seed": 42
+        },
+        "path": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\en-main-42",
+        "roles": {
+          "baseline": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\en-main-42\\baseline\\report.json",
+            "audio_seconds": 5.770068027210884,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-vocoder-oct16\\artifacts\\vocoder-head-oct16\\real-inputs\\en-main-42\\baseline\\onnx_reference.wav",
+            "teacher_sha256": "cedfdf7d7efffc7c8f09aecb76a4b0dac558a1dac3c018e937e0b6ed3c82a519",
+            "waveform_vs_fp32": {
+              "max_error": 0.387542724609375,
+              "rmse": 0.019358247900548683,
+              "relative_l2": 0.42545228285062886,
+              "cosine": 0.9090856243535221,
+              "sqnr_db": 7.422982834114048
+            },
+            "spectral_vs_fp32": 0.06595628610489261
+          },
+          "candidate": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\en-main-42\\candidate\\report.json",
+            "audio_seconds": 5.766349206349206,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-frontend-layout-oct16\\artifacts\\frontend-layout-oct16\\campaign\\quality\\pack8-norm-tail\\seed-42\\en-main\\candidate\\onnx_reference.wav",
+            "teacher_sha256": "589645359e241d852b3f2fbb6f228fd46999ffc83c8ec9338869ded6837b5c2d",
+            "waveform_vs_fp32": {
+              "max_error": 0.3115234375,
+              "rmse": 0.01590856088742021,
+              "relative_l2": 0.3495229592683559,
+              "cosine": 0.9387201184988542,
+              "sqnr_db": 9.1304858257731
+            },
+            "spectral_vs_fp32": 0.090648521865907
+          }
+        },
+        "duration_delta_percent": -0.06445020828420578,
+        "paired_common_prefix_waveform": {
+          "max_error": 0.3460693359375,
+          "rmse": 0.02026905779976928,
+          "relative_l2": 0.4473943353897574,
+          "cosine": 0.9000528952334145,
+          "sqnr_db": 6.986190379063354
+        },
+        "paired_common_prefix_spectral": 0.08988671481901946
+      },
+      {
+        "case": {
+          "id": "ko",
+          "lang": "ko",
+          "voice": "F2",
+          "text": "안녕하세요. 퀄컴 신경망 프로세서에서 음성을 만들고 있습니다.",
+          "seed": 42
+        },
+        "path": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\ko-42",
+        "roles": {
+          "baseline": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\ko-42\\baseline\\report.json",
+            "audio_seconds": 5.409206349206349,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-vocoder-oct16\\artifacts\\vocoder-head-oct16\\real-inputs\\ko-42\\baseline\\onnx_reference.wav",
+            "teacher_sha256": "69767401cc3fcdfe1265a0f608dfa9b63bf04bce220470bcccafc8355a316b2c",
+            "waveform_vs_fp32": {
+              "max_error": 0.213104248046875,
+              "rmse": 0.013699539844220739,
+              "relative_l2": 0.30666418167433024,
+              "cosine": 0.9527232457466639,
+              "sqnr_db": 10.266738931579875
+            },
+            "spectral_vs_fp32": 0.06246036173748093
+          },
+          "candidate": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\ko-42\\candidate\\report.json",
+            "audio_seconds": 5.405487528344671,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-frontend-layout-oct16\\artifacts\\frontend-layout-oct16\\campaign\\quality\\pack8-norm-tail\\seed-42\\ko\\candidate\\onnx_reference.wav",
+            "teacher_sha256": "5bfd1233a252a7f57368d92e672c28bed65202bef4478c182a53a2b44339f964",
+            "waveform_vs_fp32": {
+              "max_error": 0.350860595703125,
+              "rmse": 0.022419884978341627,
+              "relative_l2": 0.5016965494453489,
+              "cosine": 0.8734098790359617,
+              "sqnr_db": 5.991177718811038
+            },
+            "spectral_vs_fp32": 0.07441039716113025
+          }
+        },
+        "duration_delta_percent": -0.06874984279761076,
+        "paired_common_prefix_waveform": {
+          "max_error": 0.30511474609375,
+          "rmse": 0.016960054388915572,
+          "relative_l2": 0.38171498256610453,
+          "cosine": 0.9271292031037903,
+          "sqnr_db": 8.365215867400877
+        },
+        "paired_common_prefix_spectral": 0.05945740155413965
+      },
+      {
+        "case": {
+          "id": "es",
+          "lang": "es",
+          "voice": "M3",
+          "text": "Hola, esta voz se genera directamente en mi ordenador.",
+          "seed": 42
+        },
+        "path": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\es-42",
+        "roles": {
+          "baseline": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\es-42\\baseline\\report.json",
+            "audio_seconds": 3.5081632653061225,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-vocoder-oct16\\artifacts\\vocoder-head-oct16\\real-inputs\\es-42\\baseline\\onnx_reference.wav",
+            "teacher_sha256": "faa44afb69acccf1bf8111d686952dbd0dbee7fafd686dfdb262cb0e004808c5",
+            "waveform_vs_fp32": {
+              "max_error": 0.483428955078125,
+              "rmse": 0.027075383774842896,
+              "relative_l2": 0.48452596217087196,
+              "cosine": 0.882303143570974,
+              "sqnr_db": 6.293658947064548
+            },
+            "spectral_vs_fp32": 0.07369447367139952
+          },
+          "candidate": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\es-42\\candidate\\report.json",
+            "audio_seconds": 3.5044444444444443,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-frontend-layout-oct16\\artifacts\\frontend-layout-oct16\\campaign\\quality\\pack8-norm-tail\\seed-42\\es\\candidate\\onnx_reference.wav",
+            "teacher_sha256": "bef5b87c796c95d5d406d3adf15018177e3cf5f9d1fecb0d47737dec38f4a104",
+            "waveform_vs_fp32": {
+              "max_error": 0.4576416015625,
+              "rmse": 0.027363707557126967,
+              "relative_l2": 0.4894260298068519,
+              "cosine": 0.8798083011015858,
+              "sqnr_db": 6.206258733977133
+            },
+            "spectral_vs_fp32": 0.07404601551293154
+          }
+        },
+        "duration_delta_percent": -0.10600478314265471,
+        "paired_common_prefix_waveform": {
+          "max_error": 0.177520751953125,
+          "rmse": 0.007902838604237789,
+          "relative_l2": 0.1417325095080596,
+          "cosine": 0.9899475550040863,
+          "sqnr_db": 16.97061046426509
+        },
+        "paired_common_prefix_spectral": 0.039296529126909265
+      },
+      {
+        "case": {
+          "id": "fr",
+          "lang": "fr",
+          "voice": "F4",
+          "text": "Bonjour, cette voix fonctionne sur mon ordinateur.",
+          "seed": 42
+        },
+        "path": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\fr-42",
+        "roles": {
+          "baseline": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\fr-42\\baseline\\report.json",
+            "audio_seconds": 3.3184353741496597,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-vocoder-oct16\\artifacts\\vocoder-head-oct16\\real-inputs\\fr-42\\baseline\\onnx_reference.wav",
+            "teacher_sha256": "b9350b272c1a4e18a8ca4af43f84c45d08b7293696b34f3b141d032193164893",
+            "waveform_vs_fp32": {
+              "max_error": 0.28204345703125,
+              "rmse": 0.024473161816369174,
+              "relative_l2": 0.50540626254392,
+              "cosine": 0.8696578267081864,
+              "sqnr_db": 5.927187619852891
+            },
+            "spectral_vs_fp32": 0.06637016768359146
+          },
+          "candidate": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\fr-42\\candidate\\report.json",
+            "audio_seconds": 3.310997732426304,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-frontend-layout-oct16\\artifacts\\frontend-layout-oct16\\campaign\\quality\\pack8-norm-tail\\seed-42\\fr\\candidate\\onnx_reference.wav",
+            "teacher_sha256": "832da6945c0f0e0b8dbb9478b05f518f8cbc19ff9b4ef009257fd3e1fa9d6318",
+            "waveform_vs_fp32": {
+              "max_error": 0.266815185546875,
+              "rmse": 0.02288901978373341,
+              "relative_l2": 0.4721614124278969,
+              "cosine": 0.8864190125473547,
+              "sqnr_db": 6.5181901737950465
+            },
+            "spectral_vs_fp32": 0.05181551335094441
+          }
+        },
+        "duration_delta_percent": -0.2241309799580482,
+        "paired_common_prefix_waveform": {
+          "max_error": 0.2601318359375,
+          "rmse": 0.0141192111957672,
+          "relative_l2": 0.29780389226266185,
+          "cosine": 0.9557277897087746,
+          "sqnr_db": 10.52139260735519
+        },
+        "paired_common_prefix_spectral": 0.05436072728399302
+      },
+      {
+        "case": {
+          "id": "confirm-pt-m1",
+          "lang": "pt",
+          "voice": "M1",
+          "text": "Por favor, coloque os livros perto da janela.",
+          "seed": 303
+        },
+        "path": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\confirm-pt-m1-303",
+        "roles": {
+          "baseline": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\confirm-pt-m1-303\\baseline\\report.json",
+            "audio_seconds": 3.405873015873016,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-vocoder-oct16\\artifacts\\vocoder-head-oct16\\real-inputs\\confirm-pt-m1-303\\baseline\\onnx_reference.wav",
+            "teacher_sha256": "898c58564c603fa8158b74dacf40b76ab376de243ee1890ccc4379f1e3c50740",
+            "waveform_vs_fp32": {
+              "max_error": 0.140655517578125,
+              "rmse": 0.004973522625138093,
+              "relative_l2": 0.11912468576266648,
+              "cosine": 0.9928927268738691,
+              "sqnr_db": 18.479964639428264
+            },
+            "spectral_vs_fp32": 0.04489872773606193
+          },
+          "candidate": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\confirm-pt-m1-303\\candidate\\report.json",
+            "audio_seconds": 3.400294784580499,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-frontend-layout-oct16\\artifacts\\frontend-layout-oct16\\campaign\\quality\\pack8-norm-tail\\seed-303\\confirm-pt-m1\\candidate\\onnx_reference.wav",
+            "teacher_sha256": "7b5660e928b3195df2658060c91cd3d6df2f96c23151fd2fb713782f13793d1f",
+            "waveform_vs_fp32": {
+              "max_error": 0.19061279296875,
+              "rmse": 0.007710262232314543,
+              "relative_l2": 0.18452315767031593,
+              "cosine": 0.982959258006449,
+              "sqnr_db": 14.678982441880226
+            },
+            "spectral_vs_fp32": 0.06353007311273395
+          }
+        },
+        "duration_delta_percent": -0.1637827149315263,
+        "paired_common_prefix_waveform": {
+          "max_error": 0.1220703125,
+          "rmse": 0.004331504445825997,
+          "relative_l2": 0.10386414466002176,
+          "cosine": 0.9946117422440788,
+          "sqnr_db": 19.67068702071139
+        },
+        "paired_common_prefix_spectral": 0.03977398495917073
+      },
+      {
+        "case": {
+          "id": "confirm-pt-m1",
+          "lang": "pt",
+          "voice": "M1",
+          "text": "Por favor, coloque os livros perto da janela.",
+          "seed": 404
+        },
+        "path": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\confirm-pt-m1-404",
+        "roles": {
+          "baseline": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\confirm-pt-m1-404\\baseline\\report.json",
+            "audio_seconds": 3.405873015873016,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-vocoder-oct16\\artifacts\\vocoder-head-oct16\\real-inputs\\confirm-pt-m1-404\\baseline\\onnx_reference.wav",
+            "teacher_sha256": "966def558a8cea31320c26e762ed718e741255604ff9fa326e1ecf3768921c4b",
+            "waveform_vs_fp32": {
+              "max_error": 0.225738525390625,
+              "rmse": 0.01233473376358171,
+              "relative_l2": 0.2740587647525997,
+              "cosine": 0.9623299996976329,
+              "sqnr_db": 11.243126081445505
+            },
+            "spectral_vs_fp32": 0.08082154228052527
+          },
+          "candidate": {
+            "report": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\superfast-oct18\\quality\\confirm-pt-m1-404\\candidate\\report.json",
+            "audio_seconds": 3.400294784580499,
+            "teacher_source": "C:\\Users\\hocbu\\GitHub\\supertonic-npu\\artifacts\\research\\worktree-frontend-layout-oct16\\artifacts\\frontend-layout-oct16\\campaign\\quality\\pack8-norm-tail\\seed-404\\confirm-pt-m1\\candidate\\onnx_reference.wav",
+            "teacher_sha256": "8cfd6bd172d3523c9d9e98a9dd3ffc1db8b968afdf5131b890a58e3698a38083",
+            "waveform_vs_fp32": {
+              "max_error": 0.246551513671875,
+              "rmse": 0.012987320380732295,
+              "relative_l2": 0.28832183205628537,
+              "cosine": 0.9583615517597314,
+              "sqnr_db": 10.802449421914115
+            },
+            "spectral_vs_fp32": 0.09311653249217258
+          }
+        },
+        "duration_delta_percent": -0.1637827149315263,
+        "paired_common_prefix_waveform": {
+          "max_error": 0.1639404296875,
+          "rmse": 0.006805753297949191,
+          "relative_l2": 0.1515765883743374,
+          "cosine": 0.9885294200490439,
+          "sqnr_db": 16.38735744175824
+        },
+        "paired_common_prefix_spectral": 0.04561760141930257
+      }
+    ],
+    "human_listening": "pending",
+    "numeric_audio": "PCM16 WAV common prefix without alignment/time warping"
+  }
+}
