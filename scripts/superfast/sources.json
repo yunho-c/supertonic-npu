@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "project": "supertonic-npu",
+  "copies": {
+    "final_four_transformations.py": {
+      "revision": "3f92c1f4e869ca75f292be6a32a63695990b0b7f",
+      "path": "artifacts/research/worktree-final-four-oct16/scripts/final_four_transformations.py",
+      "sha256": "8ffa8a83b60321317dda6ffda588a6a946326e59f77631b316bd81898587e611"
+    },
+    "flow_unroll.py": {
+      "revision": "3f92c1f4e869ca75f292be6a32a63695990b0b7f",
+      "path": "artifacts/research/worktree-final-four-oct16/scripts/flow_unroll.py",
+      "sha256": "25553bef18d061e8d288b749913dc103bbddddabe46d541ff03938cc040d5dc7"
+    },
+    "frontend_transformations.py": {
+      "revision": "2522dda3924745480d40ecb05a28d0072238f078",
+      "path": "artifacts/research/worktree-frontend-layout-oct16/scripts/frontend_transformations.py",
+      "sha256": "7f3519bb33fbaec88b010f2359ddd9d12339727c95fd15259536667a8b3527fc"
+    },
+    "fusion_transformations.py": {
+      "revision": "3f92c1f4e869ca75f292be6a32a63695990b0b7f",
+      "path": "artifacts/research/worktree-final-four-oct16/scripts/fusion_transformations.py",
+      "sha256": "1ff50dbf0ce7ca2df18a4d1c7a13478dea93ef931a0b54d2bafce27983b97e7d"
+    },
+    "qnn_transformations.py": {
+      "revision": "3f92c1f4e869ca75f292be6a32a63695990b0b7f",
+      "path": "artifacts/research/worktree-final-four-oct16/scripts/qnn_transformations.py",
+      "sha256": "4106d09bddd53bfe46b301fd9c08e0483d652332db38532bae5b8b92c458e6c2"
+    },
+    "research_transformations.py": {
+      "revision": "3f92c1f4e869ca75f292be6a32a63695990b0b7f",
+      "path": "artifacts/research/worktree-final-four-oct16/scripts/research_transformations.py",
+      "sha256": "cee7988f16d799e5fc2ee5c0edfd0da6086482bd09375b386d823ae02a6f250f"
+    },
+    "vocoder_transformations.py": {
+      "revision": "1e3be4a2d2f67fc28fa8b4788df65cd1271e710d",
+      "path": "artifacts/research/worktree-vocoder-oct16/scripts/vocoder_transformations.py",
+      "sha256": "c753da3a5de1709a330f7135decc438e73151a14f0c2e80c1ceee0cd067b1e6b"
+    }
+  },
+  "note": "Frozen measured Superfast transformations; original research worktrees are not runtime or rebuild dependencies. ExecuTorch-derived attention retains its BSD license in licenses/executorch.txt."
+}

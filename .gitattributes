@@ -1,0 +1,6 @@
+# Preserve the exact research-source bytes recorded in export provenance.
+scripts/superfast/* -text -eol whitespace=cr-at-eol
+scripts/export_superfast_context.py text eol=lf
+scripts/build_superfast_context.py text eol=lf
+tests/test_superfast_context.py text eol=lf
+docs/superfast-context.md text eol=lf
